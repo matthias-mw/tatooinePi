@@ -109,63 +109,70 @@ COMP_ASSERT_4CONV       = 0b00000010
 COMP_DISABLE            = 0b00000011    #default
 
 
-def init_ADS1115(ibus):
-    
-    #Bestimmen der Konfiguration
-    config_hb = OS_BEGIN_SINGLE_CONV | MUX_AIN0_GND | PGA_4V096 | MODE_CONTINIUS_CONV
-    config_lb = DR_128SPS | COMP_MODE_TRADITIONAL | COMP_DISABLE
-    
-    #Schreiben der Konfiguration in des ads1114
-    ibus.write_i2c_block_data(ADDRESS, CMD_SEL_REG_CONFIG, [config_hb,config_lb])
-    
-    #Verzögerung
-    time.sleep(0.1)
 
-def read_conversation_ADS1115(ibus):
-    """Auslesen des Conversation Registers des ADS1115
+class AnalogIn:
     
-    Mit der Funktion wird eine Liste von 2 Byte [MSB,LSB] ausgelesen, welche
-    den 16Bit Inhalt des Conversation Registers enthält.
+    i2c_addr    = ADDRESS
+    voltage     = 0
+    raw_adc     = 0
+    mux         = MUX_AIN0_GND
 
-    Args:
-        ibus : Zeiger auf den I2C BUs]
-    """
-    #Auslesen des Conversation Registers im ADS1115
-    return ibus.read_i2c_block_data(ADDRESS, CMD_SEL_REG_CONV, 2)
+    def __init__(self,bus,mux,scale):
+        
+        self.bus = bus
+        self.mux = 1
+        self.scale = scale
+        
+        #Bestimmen der Konfiguration
+        config_hb = OS_BEGIN_SINGLE_CONV | MUX_AIN0_GND | PGA_4V096 | MODE_CONTINIUS_CONV
+        config_lb = DR_128SPS | COMP_MODE_TRADITIONAL | COMP_DISABLE
+        
+        #Schreiben der Konfiguration in des ads1114
+        self.bus.write_i2c_block_data(self.i2c_addr, CMD_SEL_REG_CONFIG, [config_hb,config_lb])
+        
+        #Verzögerung
+        time.sleep(0.1)
+
+    def read_conversation(self):
+        """Auslesen des Conversation Registers des ADS1115
+        
+        Mit der Funktion wird eine Liste von 2 Byte [MSB,LSB] ausgelesen, welche
+        den 16Bit Inhalt des Conversation Registers enthält.
+
+        
+        """
+        #Auslesen des Conversation Registers im ADS1115
+        return self.bus.read_i2c_block_data(self.i2c_addr, CMD_SEL_REG_CONV, 2)
      
     
 
-def read_AnalogIn(ibus, chn, scale):
-    
-    #ToDo Select Chanel
-    
-    
-    data = read_conversation_ADS1115(ibus)
-    
-    # Convert the data
-    raw_adc = data[0] * 256 + data[1]
+    def read_analogIn(self):
+        
+        #ToDo Select Chanel
+        
+        
+        data = self.read_conversation()
+        
+        # Convert the data
+        self.raw_adc = data[0] * 256 + data[1]
 
-    # Umwandlung Rohwert in +/- FullScale
-    # The ADS115 provides a 16bit Signal 
-    # -FullScale     <<        0        >>        +FullScale
-    # 0x8000         0xFFFF    0    0x0001            0x7FFF
-    if raw_adc > 32767:
-	    raw_adc -= 65535
+        # Umwandlung Rohwert in +/- FullScale
+        # The ADS115 provides a 16bit Signal 
+        # -FullScale     <<        0        >>        +FullScale
+        # 0x8000         0xFFFF    0    0x0001            0x7FFF
+        if self.raw_adc > 32767:
+            self.raw_adc -= 65535
 
-    #Skalierung des ADC auf Volt
-    volt = scale / 0x7FFF * raw_adc
-    voltage = {
-        "raw_value":    raw_adc,
-        "scale":        scale,
-        "Volt":         volt
-    }
-    return voltage
+        #Skalierung des ADC auf Volt
+        self.voltage = scale / 0x7FFF * self.raw_adc 
+        
+        return self.voltage
 
 
 # Get I2C bus
 bus = smbus.SMBus(1)
 
-init_ADS1115(bus)
+ADC1 = AnalogIn(bus,1,4.096)
 
 scale = 4.096
 
@@ -174,12 +181,13 @@ while True:
 
 
 
-    tmp = read_AnalogIn(bus,1,scale)
+    ADC1.read_analogIn()
 
-    print(tmp["Volt"])
+    print(ADC1.voltage)
+    print(ADC1.__dict__)
 
     # Output data to screen
-    print (tmp)
+
     
     #Verzögerung
-    time.sleep(0.5)
+    time.sleep(1)
