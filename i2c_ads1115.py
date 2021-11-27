@@ -1,9 +1,4 @@
 
-
-import smbus
-import time
-
-
 #I2C Adresse des ADS1115 (Ground an ADDR-PIN)
 ADDRESS = 0x48  
 
@@ -109,48 +104,112 @@ COMP_ASSERT_4CONV       = 0b00000010
 COMP_DISABLE            = 0b00000011    #default
 
 
-
 class AnalogIn:
+    """Die Klasse zur Ansteuerung des ADS1115
     
+    In der Klasse werden alle Methoden und Attribute bereit gestellt, die
+    Benötigt werden einen ADS1115 anzusteuern, zu konfigurieren und 
+    auszulesen.
+
+    Returns:
+        object: Das Objekt repräsentiert einen AD Kanal des ADS1115
+    """
+    
+    #Adresse des I2C Devices 
     i2c_addr    = ADDRESS
+    #Gemessene Spannung 
     voltage     = 0
+    #16bit Wert des AD Wandlers
     raw_adc     = 0
+    #Config für den Multiplexer
     mux         = MUX_AIN0_GND
+    #MSB für das Configregister
+    configMSB   = OS_BEGIN_SINGLE_CONV | MUX_AIN0_GND | PGA_4V096 | MODE_SINGLE_SHOT_CONV
+    #LSB für das Configregister
+    configLSB   = DR_128SPS | COMP_MODE_TRADITIONAL | COMP_DISABLE
+    
 
     def __init__(self,bus,mux,scale):
+        """Initialisierung des AnalogChannel vom ADS1115
+
+        Args:
+            bus (obj): obj übergeben von der der Funktion smbus
+            mux (int): Einstellung für den Multiplexer im ADS1115
+            scale ([type]): Skalierung des AD-Wandlers in Volt
+        """
         
         self.bus = bus
-        self.mux = 1
+        self.mux = mux
         self.scale = scale
+        # Übernahme der Mux Einstellung
+        self.configMSB = self.configMSB & 0b10001111
+        self.configMSB = self.configMSB | mux
         
-        #Bestimmen der Konfiguration
-        config_hb = OS_BEGIN_SINGLE_CONV | MUX_AIN0_GND | PGA_4V096 | MODE_CONTINIUS_CONV
-        config_lb = DR_128SPS | COMP_MODE_TRADITIONAL | COMP_DISABLE
+        #Config Schreiben
+        self.write_config()
         
-        #Schreiben der Konfiguration in des ads1114
-        self.bus.write_i2c_block_data(self.i2c_addr, CMD_SEL_REG_CONFIG, [config_hb,config_lb])
-        
-        #Verzögerung
-        time.sleep(0.1)
-
     def read_conversation(self):
         """Auslesen des Conversation Registers des ADS1115
         
         Mit der Funktion wird eine Liste von 2 Byte [MSB,LSB] ausgelesen, welche
         den 16Bit Inhalt des Conversation Registers enthält.
-
         
         """
         #Auslesen des Conversation Registers im ADS1115
         return self.bus.read_i2c_block_data(self.i2c_addr, CMD_SEL_REG_CONV, 2)
      
-    
+    def set_config(self, msb,lsb):
+        """Erstellen der Config Bytes für das Register im ADS1115
 
-    def read_analogIn(self):
+        Args:
+            msb (byte): Most Significant Byte
+            lsb (byte): Least Significant Byte
+        """
         
-        #ToDo Select Chanel
+        #Abspeichern des Config
+        self.configMSB = msb
+        self.configLSB = lsb
         
+    def write_config(self):
+        """Schreiben des Configregisters vom ADS1115
+        """
+         #Schreiben der Konfiguration in des ads1115
+        self.bus.write_i2c_block_data(self.i2c_addr, CMD_SEL_REG_CONFIG, [self.configMSB,self.configLSB])       
         
+    def read_config(self):
+        """Lesen des Configregisters vom ADS1115
+        """
+        #Auslesen der Konfiguration in des ads1115
+        return self.bus.read_i2c_block_data(self.i2c_addr, CMD_SEL_REG_CONFIG, 2)
+    
+    def print_config(self):
+        """Debuggen der aktuellen Connfig dieses AD Objektes
+        """
+        print ("MSB:" + "{0:010b}".format(self.configMSB) + " --- LSB:" + "{0:010b}".format(self.configLSB))
+        
+    
+    def measure_analogIn(self):
+        """ Ausführen einer SingleShot Messung am entsprechendem AD-Eingang
+        
+        Messung der Spannung am AD-Wandler mittels Single Shot. Dazu wird
+        zuerst das Config register geschrieben und damit Single Shot getriggert.
+        Anschließend wird Config gepollt, um sicherzustellen, dass die Messung 
+        abgeschlossen wurde. Anschließend wird der Messwert ausgelesen und skaliert.
+
+        Returns:
+            [float]: Gemessen Spannung am AD-Wandler
+        """
+        #Schreiben der Konfiguration in des ads1114
+        self.write_config()
+
+        #Warten bis die SingleShot Messung abgeschlossen ist
+        while 1:
+            conf = self.read_config()
+            #print ("{0:b}".format(conf[0]), "{0:b}".format(conf[1]))
+            if conf[0] & OS_DEV_CONV_NOT_ACTIV:
+                break
+            
+        #Auslesen der 16bit aus der letzten Messung
         data = self.read_conversation()
         
         # Convert the data
@@ -164,30 +223,8 @@ class AnalogIn:
             self.raw_adc -= 65535
 
         #Skalierung des ADC auf Volt
-        self.voltage = scale / 0x7FFF * self.raw_adc 
+        self.voltage = self.scale / 0x7FFF * self.raw_adc 
         
         return self.voltage
 
 
-# Get I2C bus
-bus = smbus.SMBus(1)
-
-ADC1 = AnalogIn(bus,1,4.096)
-
-scale = 4.096
-
-while True:
-    
-
-
-
-    ADC1.read_analogIn()
-
-    print(ADC1.voltage)
-    print(ADC1.__dict__)
-
-    # Output data to screen
-
-    
-    #Verzögerung
-    time.sleep(1)
