@@ -2,6 +2,7 @@ from typing import ClassVar
 import smbus
 import time
 from datetime import datetime
+from dataclasses import dataclass
 import copy
 
 #i2c - AD-Wandler INA219
@@ -46,7 +47,7 @@ class AquireData:
     
     _MAX_DATA_POINTS_HISTORY = 5
     
-    data = []
+    data_last_measured = []
     data_history = []
     
     
@@ -64,12 +65,12 @@ class AquireData:
         self.mpu = mpu6050(0x68)
         isoTime = datetime.now()
         
-        for x in self.CHANNELS:
-            self.data.append(DataPoint(x,"-",isoTime,0))
+        #initialisierung der aktuellen Messdaten
+        self.data_last_measured =[DataPoint(x,"-",isoTime,0) for x in self.CHANNELS]
    
     def _store_data(self, data_point, value=0.0, unit = "-", time = datetime.now()):
         data_point.unit = unit
-        data_point.time = time
+        data_point.timestamp = time
         data_point.value = value      
         #print('gemessen ... -> {0:<15s} {1:s} {2:>10.2f} {3:s}'.format(data_point.name, time.strftime("%m/%d/%Y - %H:%M:%S"), value, unit))
     
@@ -78,7 +79,7 @@ class AquireData:
         self.Ina.configure()
         isoTime = datetime.now()
                 
-        for x in self.data:
+        for x in self.data_last_measured:
             if x.name == self.__U_POWER_IT:
                 self._store_data(x,self.Ina.voltage(),"V",isoTime)
             if x.name == self.__I_POWER_IT:
@@ -93,7 +94,7 @@ class AquireData:
         self.Adc2.measure_analogIn()
         self.Adc3.measure_analogIn()
                 
-        for x in self.data:        
+        for x in self.data_last_measured:        
             if x.name == self.__U_ADC1:
                 self._store_data(x,self.Adc1.voltage,"V",isoTime)
             if x.name == self.__U_ADC2:
@@ -107,7 +108,7 @@ class AquireData:
         accel_data = self.mpu.get_accel_data(True)
         gyro_data =self.mpu.get_gyro_data()
         
-        for x in self.data:        
+        for x in self.data_last_measured:        
             if x.name == self.__ACC_X:
                 self._store_data(x,accel_data['x'],"g",isoTime)
             if x.name == self.__ACC_Y:
@@ -121,19 +122,19 @@ class AquireData:
             if x.name == self.__GYRO_Z:
                 self._store_data(x,gyro_data['z'],"dps",isoTime)
             if x.name == self.__GYRO_TEMP:
-                self._store_data(x,self.mpu.get_temp(), chr(176)+'C',isoTime)          
+                self._store_data(x,self.mpu.get_temp(), 'grdC',isoTime)          
             
     
     def aquire_data(self):
         
 
         #----------------------------------------------------------------------------
-        # Erfassung der MEsswerte und anschließendes Abspeichern in der Historie
+        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
         #----------------------------------------------------------------------------    
-        #self.measure_power()
+        self.measure_power()
         self.measure_adc()
         self.measure_gyro()
-        tmp = copy.deepcopy(self.data)
+        tmp = copy.deepcopy(self.data_last_measured)
         
         if len(self.data_history) > self._MAX_DATA_POINTS_HISTORY:
             del self.data_history[0]
@@ -143,8 +144,8 @@ class AquireData:
 
        
         print(chr(27) + "[2J")
-        print('Channel               Value          Deviation  ')     
-        print('=============================================================')
+        print('Channel               Value                    Deviation  ')     
+        print('==================================================================')
         #----------------------------------------------------------------------------
         # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte Historie
         #----------------------------------------------------------------------------
@@ -167,13 +168,13 @@ class AquireData:
             #Berechne die Statistikdaten
             mean = mean / len(self.data_history)
             dev = abs(mean - last)
-            if dev == 0:
+            if mean == 0:
                 dev_per = 0
             else:
                 dev_per = dev/ mean
         
             #ToDo DebugInfo
-            print('{0:15s}  {1:10.3f}{2:<4s} {3:11.4f}{2:<4s}  {4:7.4f}%'.format(chn,mean,chn_sel.unit, dev, dev_per))     
+            print('{0:15s}  {1:10.3f}{2:>5s} {3:15.4f}{2:>5s}  {4:9.4f} %'.format(chn,mean,chn_sel.unit, dev, dev_per))     
             #self.show_history(chn)  
             
             
@@ -193,13 +194,13 @@ class AquireData:
         cnt = 0
         mean = 0
         
-        for x in self.data_history:
+        for x in self.self.data_history:
             for y in x:    
                 if y.name == chn:
                     tmp = tmp + '{0:>10.2f} {1:s}'.format(y.value, y.unit)
                     mean += y.value
                     
-        mean = mean / len(self.data_history)
+        mean = mean / len(self.self.data_history)
         print(tmp + '-> Mittelwert: {0:>10.2f}'.format(mean))
         
                      
@@ -207,23 +208,23 @@ class AquireData:
         
         
              
-
+@dataclass
 class   DataPoint():
     
-    interval_std    = 10
-    interval_fast   = 0.1
-    thd_deviation_abs = 10
-    thd_deviation_per = 5
-    value_mean = 0
-    value_dev = 0
+    name: str = '-'
+    unit: str = '-'
+    timestamp: datetime = datetime(2000,1,1)
+    value: float = 0
+
+    interval_std: float = 10
+    interval_fast: float   = 0.1
+    thd_deviation_abs: float = 10
+    thd_deviation_per: float = 5
+    value_mean: float = 0
+    value_dev: float = 0
     
         
-    def __init__(self, name, unit, time, value):
-        
-        self.name = name
-        self.unit = unit
-        self.time = time
-        self.value = value
+
         
     
  
