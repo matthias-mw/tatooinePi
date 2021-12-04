@@ -3,7 +3,8 @@ import smbus
 import time
 from datetime import datetime
 from dataclasses import dataclass
-import copy
+from dataclasses import field
+
 
 #i2c - AD-Wandler INA219
 import i2c_ads1115 as ADS1115
@@ -19,7 +20,71 @@ bus = smbus.SMBus(1)
 
 
 
-
+@dataclass
+class   DataPoint():
+    
+    name: str = '-'
+    unit: str = '-'
+    timestamp: float = 0
+    value: float = 0
+    interval_std: float = 10
+    interval_fast: float   = 0.1
+    thd_deviation_abs: float = 10
+    thd_deviation_per: float = 5
+    value_mean: float = 0
+    value_dev_perc: float = 0
+    value_dev_abs: float = 0
+    history_length: int = 10
+    timestamp_history: list[float] = field(default_factory=list)
+    value_history: list[float] = field(default_factory=list)
+    
+    
+    
+    def update_value(self, new_value, new_timestamp):
+        
+        
+        #----------------------------------------------------------------------------
+        # Ältesten Wert aus der Historie entfernen
+        #----------------------------------------------------------------------------        
+        if len(self.value_history) >= self.history_length:
+            del self.value_history[0]
+            
+        if len(self.timestamp_history) >= self.history_length:
+            del self.timestamp_history[0]
+        
+        #----------------------------------------------------------------------------
+        # Updaten der Werte und Historie
+        #----------------------------------------------------------------------------        
+        self.value_history.append(new_value)
+        self.value = new_value
+        self.timestamp_history.append(new_timestamp)
+        self.timestamp = new_timestamp
+        
+        #----------------------------------------------------------------------------
+        # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte Historie
+        #----------------------------------------------------------------------------        
+        mean = 0
+        
+        for x in self.value_history:
+            mean += x
+               
+        #Berechne die Statistikdaten
+        self.value_mean = mean / len(self.value_history)
+        self.value_dev_abs = abs(self.value_mean - self.value)
+        if self.value_mean == 0:
+            self.value_dev_perc = 0
+        else:
+            self.value_dev_perc = self.value_dev_abs / self.value_mean *100        
+        
+    def print_data_line(self):
+        
+        print('{0:15s}  {1:10.2f}{5:>5s} {2:10.3f}{5:>5s} {3:10.3f}{5:>5s} {4:9.4f} %'.format(self.name,self.value, self.value_mean, self.value_dev_abs, self.value_dev_perc, self.unit))             
+    
+    def print_header():
+        
+        print(chr(27) + "[2J")
+        print('Channel               Value            Mean                  Deviation  ')     
+        print('================================================================================')
 
 
 
@@ -48,7 +113,7 @@ class AquireData:
     _MAX_DATA_POINTS_HISTORY = 5
     
     data_last_measured = []
-    data_history = []
+
     
     
     def __init__(self, bus = None):
@@ -69,13 +134,17 @@ class AquireData:
         self.data_last_measured =[DataPoint(x,"-",isoTime,0) for x in self.CHANNELS]
    
     def _store_data(self, data_point, value=0.0, unit = "-", time = datetime.now()):
+
         data_point.unit = unit
-        data_point.timestamp = time
-        data_point.value = value      
-        #print('gemessen ... -> {0:<15s} {1:s} {2:>10.2f} {3:s}'.format(data_point.name, time.strftime("%m/%d/%Y - %H:%M:%S"), value, unit))
+        data_point.update_value(value,time.timestamp())
+
     
     def measure_power(self):
-
+        
+        
+        #--------------------------------------------------------------------
+        # Erfassung der Messwerte des INA219 und anschließendes Abspeichern 
+        #--------------------------------------------------------------------
         self.Ina.configure()
         isoTime = datetime.now()
                 
@@ -89,6 +158,11 @@ class AquireData:
 
     def measure_adc(self):
 
+        
+        
+        #--------------------------------------------------------------------
+        # Erfassung der Messwerte des ADS1115 und anschließendes Abspeichern 
+        #--------------------------------------------------------------------
         isoTime = datetime.now()
         self.Adc1.measure_analogIn()
         self.Adc2.measure_analogIn()
@@ -104,6 +178,10 @@ class AquireData:
     
     def measure_gyro(self):
         
+        
+        #--------------------------------------------------------------------
+        # Erfassung der Messwerte des MPU6050 und anschließendes Abspeichern 
+        #--------------------------------------------------------------------
         isoTime = datetime.now()
         accel_data = self.mpu.get_accel_data(True)
         gyro_data =self.mpu.get_gyro_data()
@@ -130,104 +208,27 @@ class AquireData:
 
         #----------------------------------------------------------------------------
         # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-        #----------------------------------------------------------------------------    
+        #----------------------------------------------------------------------------
         self.measure_power()
         self.measure_adc()
         self.measure_gyro()
-        tmp = copy.deepcopy(self.data_last_measured)
-        
-        if len(self.data_history) > self._MAX_DATA_POINTS_HISTORY:
-            del self.data_history[0]
-        
-        self.data_history.append(tmp)
        
-
-       
-        print(chr(27) + "[2J")
-        print('Channel               Value                    Deviation  ')     
-        print('==================================================================')
         #----------------------------------------------------------------------------
-        # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte Historie
+        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
         #----------------------------------------------------------------------------
-        # #Auswahl des zu bearbeitenden Messkanals
-        for chn in self.CHANNELS:
-            #Init
-            last = 0
-            mean = 0
-            dev = 0
-            #Gehe durch jedes Datenpaket in der Historie
-            for cur_data in self.data_history:
-                #Gehe durch jeden Kanal des Datenpaketes
-                for chn_sel in cur_data:  
-                    #Führe die Berechnung für den Kanal durch  
-                    if chn_sel.name == chn:
-                        mean += chn_sel.value
-                        last = chn_sel.value
-                        break
-                    
-            #Berechne die Statistikdaten
-            mean = mean / len(self.data_history)
-            dev = abs(mean - last)
-            if mean == 0:
-                dev_per = 0
-            else:
-                dev_per = dev/ mean
+        DataPoint.print_header()
+        for x in self.data_last_measured:
+            DataPoint.print_data_line(x)
         
-            #ToDo DebugInfo
-            print('{0:15s}  {1:10.3f}{2:>5s} {3:15.4f}{2:>5s}  {4:9.4f} %'.format(chn,mean,chn_sel.unit, dev, dev_per))     
-            #self.show_history(chn)  
-            
-            
-            
-        
-        
-        
-                  
-        
-        
-
-        
-        
-    def show_history(self,chn = __U_POWER_IT):
-        
-        tmp = ""
-        cnt = 0
-        mean = 0
-        
-        for x in self.self.data_history:
-            for y in x:    
-                if y.name == chn:
-                    tmp = tmp + '{0:>10.2f} {1:s}'.format(y.value, y.unit)
-                    mean += y.value
-                    
-        mean = mean / len(self.self.data_history)
-        print(tmp + '-> Mittelwert: {0:>10.2f}'.format(mean))
-        
+  
                      
                 
         
         
              
-@dataclass
-class   DataPoint():
-    
-    name: str = '-'
-    unit: str = '-'
-    timestamp: datetime = datetime(2000,1,1)
-    value: float = 0
-
-    interval_std: float = 10
-    interval_fast: float   = 0.1
-    thd_deviation_abs: float = 10
-    thd_deviation_per: float = 5
-    value_mean: float = 0
-    value_dev: float = 0
-    
-        
 
         
-    
- 
+        
  
 Data = AquireData(bus)
 
@@ -236,4 +237,4 @@ while cnt < 10:
     cnt =1
     Data.aquire_data()
     #Data.measure_gyro()
-    time.sleep(0.1)
+    time.sleep(0.3)
