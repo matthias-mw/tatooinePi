@@ -1,8 +1,12 @@
+# Module zur Bearbeitung der Zeitstempel
 from datetime import datetime
 from pytz import timezone
+# Modul für Datenklassen
 from dataclasses import dataclass
 from dataclasses import field
 
+
+# Festlegen der Zeitzone für die Aufnahme der Messwerte und deren Zeitstempel
 tz_berlin = timezone('Europe/Berlin')
 
 
@@ -37,7 +41,6 @@ class   DataPoint():
     history_length: int = 10
     timestamp_history: list[float] = field(default_factory=list)
     value_history: list[float] = field(default_factory=list)
-    
     
     
     def update_value(self, new_value, new_timestamp):
@@ -91,9 +94,10 @@ class   DataPoint():
             einer Linie.
             
             Bsp: 
-            GYRO_X                 4.44  dps      4.474  dps      0.039  dps    0.8702 %
+            GYRO_X                 4.44  dps               4.474  dps               0.039  dps            0.8702 %
         """        
-        print('{0:15s}  {1:10.2f}{5:>5s} {2:10.3f}{5:>5s} {3:10.3f}{5:>5s} {4:9.4f} %'.format(self.name,self.value, self.value_mean, self.value_dev_abs, self.value_dev_perc, self.unit))             
+        print('{0:15s}  {1:10.2f}{5:>5s} {2:10.3f}{5:>5s} {3:10.3f}{5:>5s} {4:9.4f} %'.format(\
+            self.name, self.value, self.value_mean, self.value_dev_abs, self.value_dev_perc, self.unit))
     
     def print_header():
         """ Print Funktion zur Darstellung eines Headers für die Zeilendarstellung 

@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
-
+#Modul zur Bearbeitung der Zeitstempel
 from datetime import datetime
 
+# Klasse für die Abspeicherung der Datenpinkte
 from aquireData.datapoint import DataPoint
 
-#i2c - AD-Wandler ADS1115
-import driver.i2c_ads1115  as ADS1115
-#i2c - Powerüberwachung INA219
+
+#i2c Treiber - AD-Wandler ADS1115
+from driver.i2c_ads1115  import ADS1115
+#i2c Treiber - Powerüberwachung INA219
 from driver.i2c_ina219 import INA219
 from driver.i2c_ina219 import DeviceRangeError
-#i2c - Gyroscope
+#i2c Treiber - Gyroscope
 from driver.i2c_mpu6050 import mpu6050
 
 
@@ -44,9 +45,9 @@ class AquireData:
     def __init__(self, bus = None):
         self.i2c_bus = bus
         
-        self.Adc1 = ADS1115.AnalogIn(bus,ADS1115.MUX_AIN0_GND,4.096)
-        self.Adc2 = ADS1115.AnalogIn(bus,ADS1115.MUX_AIN1_GND,4.096)
-        self.Adc3 = ADS1115.AnalogIn(bus,ADS1115.MUX_AIN2_GND,4.096)
+        self.Adc1 = ADS1115(bus,ADS1115.MUX_AIN0_GND,4.096)
+        self.Adc2 = ADS1115(bus,ADS1115.MUX_AIN1_GND,4.096)
+        self.Adc3 = ADS1115(bus,ADS1115.MUX_AIN2_GND,4.096)
 
         # Objekt für die Powerüberwachung anlegen
         self.Ina = INA219(self.SHUNT_OHMS,3,1,0x40)
@@ -89,17 +90,14 @@ class AquireData:
         # Erfassung der Messwerte des ADS1115 und anschließendes Abspeichern 
         #--------------------------------------------------------------------
         isoTime = datetime.now()
-        self.Adc1.measure_analogIn()
-        self.Adc2.measure_analogIn()
-        self.Adc3.measure_analogIn()
                 
         for x in self.data_last_measured:        
             if x.name == self.__U_ADC1:
-                self._store_data(x,self.Adc1.voltage,"V",isoTime)
+                self._store_data(x,self.Adc1.getVoltage(),"V",isoTime)
             if x.name == self.__U_ADC2:
-                self._store_data(x,self.Adc2.voltage,"V",isoTime)
+                self._store_data(x,self.Adc2.getVoltage(),"V",isoTime)
             if x.name == self.__U_ADC3:
-                self._store_data(x,self.Adc3.voltage,"V",isoTime)
+                self._store_data(x,self.Adc3.getVoltage(),"V",isoTime)
     
     def measure_gyro(self):
         
