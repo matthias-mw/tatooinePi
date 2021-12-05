@@ -104,7 +104,7 @@ COMP_ASSERT_4CONV       = 0b00000010
 COMP_DISABLE            = 0b00000011    #default
 
 
-class AnalogIn:
+class AnalogIn():
     """Die Klasse zur Ansteuerung des ADS1115
     
     In der Klasse werden alle Methoden und Attribute bereit gestellt, die
