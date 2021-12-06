@@ -4,29 +4,15 @@ tatooine\_monitor package
 Submodules
 ----------
 
-tatooine\_monitor.tatooine\_monitor module
+aquireData
 ------------------------------------------
 
-.. automodule:: tatooine_monitor.tatooine_monitor
+.. automodule:: aquireData.datapoint
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-tatooine\_monitor.test module
------------------------------
-
-.. automodule:: tatooine_monitor.test
+.. automodule:: aquireData.aquire_data
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-tatooine\_monitor.test\_remote\_influxdb module
------------------------------------------------
-
-.. automodule:: tatooine_monitor.test_remote_influxdb
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------

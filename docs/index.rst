@@ -10,7 +10,17 @@ Welcome to Tatooine Monitor's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-	
+	docs/tatooine_monitor.rst
+
+.. autosummary::
+   :toctree: generated
+
+   aquireData.datapoint
+   aquireData.aquire_data
+   driver.i2c_ads1115
+   
+
+
 Indices and tables
 ==================
 
