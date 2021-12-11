@@ -4,45 +4,37 @@ import logging
 import smbus
 import time
 
-#Schnittstelle zur InfluxDB
-from influxdb import InfluxDBClient
-
 from aquireData.aquire_data import AquireData
+
+from aquireData.store_data import StoreDataToInflux
+
 
 # Get I2C bus
 bus = smbus.SMBus(1)
 
 if __name__ == '__main__':
 
-                
-    # Konfiguration der InfluxDatenbank
-    host = "192.168.1.45"   # IP der Datenbank
-    port = 8086             # default port
-    user = "admin"          # the user/password created for influxdb
-    password = "tatooinedb" 
-    dbname = "sensors"      # name der Datenbank
-        
-        
-    # Create the InfluxDB client object
-    client = InfluxDBClient(host, port, user, password, dbname)     
 
-    print(client.ping())
+
+        
+        
+    inflDB = StoreDataToInflux()
+
+    
 
     Data = AquireData(bus)
 
     cnt = 0
-    while cnt < 10:
-        cnt =1
+    while True:
+        cnt +=1
+        
         Data.aquire_data()
         
+        inflDB.check_db_connection()
+        inflDB.store_data(Data.data_last_measured,cnt)
         
-        for chn in Data.data_last_measured:
-        
-            tmp = chn.create_json_lastvalue('Signal3','tatooine')
-        
-            # Schreibe die Daten in die Datenbank
-            client.write_points(tmp)
+
         
         
         
-        time.sleep(0.1)
+        time.sleep(0.25)
