@@ -13,7 +13,7 @@ aquireData
 
 .. autoclass:: aquireData.aquire_data.AquireData
    :members:
-
+   :private-members: _MAX_DATA_POINTS_HISTORY
 
 
 

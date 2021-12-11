@@ -28,19 +28,48 @@ class   DataPoint():
     """    
     
     name: str = '-'
+    """Name des Messkanals"""
+    
     unit: str = '-'
+    """Masseinheit des Messwertes"""
+    
     timestamp: float = 0
+    """Zeitstempel des aktuellen Wertes"""
+    
     value: float = 0
-    interval_std: float = 10
+    """aktueller Wert inklusive aller Nachbearbeitungen"""
+
+    value_raw: float = 0
+    """aktuell erfasster Messwert Wert ohne Nachbearbeitungen"""
+    
+    filter_cnt: int = 4
+    
+    
+    storage_tick_counter: int = 0
+    
+    storage_tick_max: int = 20
     interval_fast: float   = 0.1
     thd_deviation_abs: float = 10
     thd_deviation_per: float = 5
+    
+    
     value_mean: float = 0
+    """Mittelwert der Historie"""
+    
     value_dev_perc: float = 0
+    """prozentuale Abweichung des Lestzen Messwertes vom Mittelwert der Historie"""
+    
     value_dev_abs: float = 0
+    """absolute Abweichung des letzten Messwertes vom Mittelwert der Historie"""
+    
     history_length: int = 10
+    """Anzahl der Werte die in der Historie gespeichert werden"""
+        
     timestamp_history: list[float] = field(default_factory=list)
+    """Historie am Zeitstempeln mit der Länge :func: `aquireData.aquire_data.DataPoint.history_length` """ 
+    
     value_history: list[float] = field(default_factory=list)
+    """Historie am Messwerten mit der Länge :func: `aquireData.aquire_data.DataPoint.history_length` """    
     
     
     def update_value(self, new_value, new_timestamp):
@@ -56,26 +85,42 @@ class   DataPoint():
         :type:                  datetime
         """        
         
-        #----------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # Ältesten Wert aus der Historie entfernen
-        #----------------------------------------------------------------------------        
+        #-----------------------------------------------------------------------
         if len(self.value_history) >= self.history_length:
             del self.value_history[0]
             
         if len(self.timestamp_history) >= self.history_length:
             del self.timestamp_history[0]
         
-        #----------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # Updaten der Werte und Historie
-        #----------------------------------------------------------------------------        
+        #-----------------------------------------------------------------------
         self.value_history.append(new_value)
-        self.value = new_value
+        self.value_raw = new_value
         self.timestamp_history.append(new_timestamp)
         self.timestamp = new_timestamp
         
-        #----------------------------------------------------------------------------
-        # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte Historie
-        #----------------------------------------------------------------------------        
+        
+        #-----------------------------------------------------------------------
+        # Nachbearbeitung (filtern) des aktuellen Messwertes
+        #-----------------------------------------------------------------------
+        if len(self.value_history) >= self.filter_cnt:
+            # Berechnung des gleitenden Mittelwertes über lie letzten Messwerte
+            self.value = (sum(self.value_history[(len(self.value_history) - \
+                         self.filter_cnt + 1):]) + self.value_raw) / self.filter_cnt
+            
+        else:
+            # Wenn noch keinen Historie vorhanden, dann wird der Rohwert 
+            # übernommen
+            self.value = new_value
+        
+        
+        #-----------------------------------------------------------------------
+        # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte
+        # Historie
+        #-----------------------------------------------------------------------
         mean = 0        
         for x in self.value_history:
             mean += x
@@ -86,7 +131,8 @@ class   DataPoint():
         if self.value_mean == 0:
             self.value_dev_perc = float(0)
         else:
-            self.value_dev_perc = float(self.value_dev_abs / self.value_mean *100)
+            self.value_dev_perc = float(self.value_dev_abs / self.value_mean 
+                                        *100)
         
         
     def print_data_line(self):
@@ -133,6 +179,7 @@ class   DataPoint():
               "time": datetime.fromtimestamp(self.timestamp,tz_berlin),
               "fields": {
                   self.name:      self.value,
+                  self.name + "_raw":    self.value_raw,
                   self.name + "_dev_abs":    self.value_dev_abs,
                   self.name + "_dev_perc":   self.value_dev_perc,
                   self.name + "_value_mean": self.value_mean
