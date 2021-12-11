@@ -12,12 +12,7 @@ Welcome to Tatooine Monitor's documentation!
 
 	docs/tatooine_monitor.rst
 
-.. autosummary::
-   :toctree: generated
 
-   aquireData.datapoint
-   aquireData.aquire_data
-   driver.i2c_ads1115
    
 
 

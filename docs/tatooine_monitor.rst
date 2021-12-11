@@ -10,8 +10,11 @@ aquireData
 .. automodule:: aquireData.datapoint
    :members:
 
-.. automodule:: aquireData.aquire_data
+
+.. autoclass:: aquireData.aquire_data.AquireData
    :members:
+
+
 
 
 Module contents
