@@ -17,7 +17,13 @@ from driver.i2c_mpu6050 import mpu6050
 
 
 class AquireData:
+    """Klasse zur zentralen Datenerfassung
     
+    Mit dieser Klasse werde alle Messwerte von den verschiedenen Sensoren
+    erfasst und entsprechend aufbereitet, um sie dann in einem Datenpunkt
+    der Klasse XXXX abzuspeichern.
+    
+    """    
     __U_POWER_IT = "U_IT"
     __I_POWER_IT = "I_IT"
     __P_POWER_IT = "P_IT"
@@ -37,12 +43,21 @@ class AquireData:
     SHUNT_OHMS = 0.1
     
     _MAX_DATA_POINTS_HISTORY = 5
-    
+    """Anzahl der Werte die in der Datenhistorie betrachtet werden"""     
+  
     data_last_measured = []
-
+    """Array von Datapoint, welcher den aktuellen Messwert jedes verfügbaren Kanals bereit hält.
+    """  
     
     
     def __init__(self, bus = None):
+        """Initialisierung des Datenaquisition Klasse
+
+        Bei der Initialisierung werden alles Objekte für den Zugriff auf die diversen Sensorchips (siehe ToDo ) erstellt und entsprechend konfiguriert.
+
+        :param bus: Object das den Datenbus repräsentiert, defaults to None
+        :type bus: Objekt(smbus), optional
+        """        
         self.i2c_bus = bus
         
         self.Adc1 = ADS1115(bus,ADS1115.MUX_AIN0_GND,4.096)
@@ -59,13 +74,32 @@ class AquireData:
         #initialisierung der aktuellen Messdaten
         self.data_last_measured =[DataPoint(x,"-",isoTime,0) for x in self.CHANNELS]
    
-    def _store_data(self, data_point, value=0.0, unit = "-", time = datetime.now()):
+    def _store_data(self, data_point, value=0.0, unit = "-", 
+                    time = datetime.now()):
+        """Abspeichern eines Wertes in einen Datenpunkt
+
+        Mit dieser internen Hilfsfunktion wird ein Messwert samt Einheit und Zeitstempel in den entsprechenden Datenpunkt abgespeichert.
+        
+        
+        :param data_point: Datenpunktobjekt
+        :type data_point: class DataPoint
+        :param value: abzuspeichernder Messwert, defaults to 0.0
+        :type value: float, optional
+        :param unit: Einheit des Messwertes, defaults to "-"
+        :type unit: str, optional
+        :param time: Zeitstempel des Messwertes, defaults to datetime.now()
+        :type time: datetime objekt, optional
+        """        
 
         data_point.unit = unit
         data_point.update_value(value,time.timestamp())
 
     
     def measure_power(self):
+        """Messung der Leistungsaufnahme des INA219
+        
+        Mittels des INA219 Sensors wird über I2C die aktuelle Spannung, die Stromaufnahme und die Leistungsaufnahme gemessen.
+        """        
         
         
         #--------------------------------------------------------------------
@@ -82,10 +116,17 @@ class AquireData:
             if x.name == self.__P_POWER_IT:
                 self._store_data(x,self.Ina.power(),"mW",isoTime)
 
-    def measure_adc(self):
 
+    def measure_adc(self):
+        """Messung von analogen Spannungen am ADS1115
         
-        
+            Es können bis zu 4 Spannungen an den ADC Eingängen des ADS1115 über den I2C Bus gemessen werden.
+            
+            TODO
+            Schaltungsaufbau beschreiben
+            
+        """        
+               
         #--------------------------------------------------------------------
         # Erfassung der Messwerte des ADS1115 und anschließendes Abspeichern 
         #--------------------------------------------------------------------
@@ -100,7 +141,11 @@ class AquireData:
                 self._store_data(x,self.Adc3.getVoltage(),"V",isoTime)
     
     def measure_gyro(self):
+        """Messung der Gyro Werte des MPU6050
         
+        Mit dieser Funktion werden alle Messwert des MPU6050 über den I2C Bus ausgelesen. So können Beschleunigungen und Gierwinkel über die Achsen X,Y,Z erfasst werden.
+        
+        """        
         
         #--------------------------------------------------------------------
         # Erfassung der Messwerte des MPU6050 und anschließendes Abspeichern 
@@ -127,7 +172,11 @@ class AquireData:
             
     
     def aquire_data(self):
+        """Zentrale Funktion zum Messen und anzeigen aller Daten
         
+        Die Funktion fragt nach einander alle verbauten Sensoren ab und speichert damit die werte in den Array[Datapoint] data_last_measured ab. Anschließend erfolgt eine Ausgabe in der Console.
+                
+        """        
 
         #----------------------------------------------------------------------------
         # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
