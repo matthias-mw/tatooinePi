@@ -171,7 +171,7 @@ class AquireData:
                 self._store_data(x,self.mpu.get_temp(), 'grdC',isoTime)          
             
     
-    def aquire_data(self):
+    def aquire_data(self, print_out = False):
         """Zentrale Funktion zum Messen und anzeigen aller Daten
         
         Die Funktion fragt nach einander alle verbauten Sensoren ab und speichert damit die werte in den Array[Datapoint] data_last_measured ab. Anschließend erfolgt eine Ausgabe in der Console.
@@ -188,10 +188,12 @@ class AquireData:
         #----------------------------------------------------------------------------
         # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
         #----------------------------------------------------------------------------
-        DataPoint.print_header()
-        for x in self.data_last_measured:
-            DataPoint.print_data_line(x)
         
+        if print_out:
+            DataPoint.print_header()
+            for x in self.data_last_measured:
+                DataPoint.print_data_line(x)
+            
   
                      
                 
