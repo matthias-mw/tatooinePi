@@ -1,0 +1,14 @@
+ID,Name,Description,Unit,Filter,TickMax,TickFast,Threshold_Abs,Threshold_Perc
+__U_POWER_IT,U_IT,Spannung IT System,V,3,50,5,0.1,5
+__I_POWER_IT,I_IT,Strom IT System,mA,5,30,5,35,12
+__P_POWER_IT,P_IT,Leistung IT System,mW,5,30,5,0.5,12
+__U_ADC1,U_BAT1,Batterie Service 12V,V,3,50,5,0.1,5
+__U_ADC2,U_BAT2,Batterie Bugstrahlruder 24V,V,3,50,5,0.1,5
+__U_ADC3,U_BAT3,Batterie Starter 12V,V,3,50,5,0.1,5
+__ACC_X,ACC_X,Beschleunigung in X,g,4,25,5,0.1,100
+__ACC_Y,ACC_Y,Beschleunigung in Y,g,4,25,5,0.1,100
+__ACC_Z,ACC_Z,Beschleunigung in Z,g,4,25,5,0.1,100
+__GYRO_X,GYRO_X,Gierwinkel um X,dps,4,25,5,5,100
+__GYRO_Y,GYRO_Y,Gierwinkel um Y,dps,4,25,5,5,100
+__GYRO_Z,GYRO_Z,Gierwinkel um Z,dps,4,25,5,5,100
+__GYRO_TEMP,GYRO_TEMP,GyroModultemperatur,grdC,2,60,5,1.5,10

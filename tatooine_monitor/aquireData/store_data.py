@@ -45,8 +45,7 @@ class StoreDataToInflux:
         for chn in current_data_list:
         
             if (chn.storage_tick_counter >= chn.storage_tick_max or \
-                chn.value_dev_abs > chn.thd_deviation_abs or \
-                chn.value_dev_perc > chn.thd_deviation_per):
+                chn.value_dev_abs > chn.thd_deviation_abs):
                 
                 tmp = chn.create_json_lastvalue('Signal3','tatooine')
         

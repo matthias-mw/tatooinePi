@@ -1,9 +1,11 @@
 #Modul zur Bearbeitung der Zeitstempel
 from datetime import datetime
 
-# Klasse für die Abspeicherung der Datenpinkte
+# Klasse für die Abspeicherung der Datenpunkte
 from aquireData.datapoint import DataPoint
 
+# Helper Modul stell Kanalkonfiguration zur Verfügung
+from aquireData.helper import *
 
 #i2c Treiber - AD-Wandler ADS1115
 from driver.i2c_ads1115  import ADS1115
@@ -24,23 +26,9 @@ class AquireData:
     der Klasse XXXX abzuspeichern.
     
     """    
-    __U_POWER_IT = "U_IT"
-    __I_POWER_IT = "I_IT"
-    __P_POWER_IT = "P_IT"
-    __U_ADC1 = "U_BAT1"
-    __U_ADC2 = "P_BAT2"
-    __U_ADC3 = "P_BAT3"
-    __ACC_X = "ACC_X"
-    __ACC_Y = "ACC_Y"
-    __ACC_Z = "ACC_Z"
-    __GYRO_X = "GYRO_X"
-    __GYRO_Y = "GYRO_Y"
-    __GYRO_Z = "GYRO_Z"
-    __GYRO_TEMP = "GYRO_TEMP"
-    
-    CHANNELS = [__U_POWER_IT,__I_POWER_IT,__P_POWER_IT,__U_ADC1,__U_ADC2,__U_ADC3,__ACC_X,__ACC_Y,__ACC_Z,__GYRO_X,__GYRO_Y,__GYRO_Z,__GYRO_TEMP]
     
     SHUNT_OHMS = 0.1
+    """Widerstandswert (Ohm) des Shunt am INA219"""
     
     _MAX_DATA_POINTS_HISTORY = 5
     """Anzahl der Werte die in der Datenhistorie betrachtet werden"""     
@@ -69,12 +57,16 @@ class AquireData:
 
         #Objekt für den MPU6050 anlegen
         self.mpu = mpu6050(0x68)
-        isoTime = datetime.now()
+
         
         #initialisierung der aktuellen Messdaten
-        self.data_last_measured =[DataPoint(x,"-",isoTime,0) for x in self.CHANNELS]
+        self.data_last_measured =[DataPoint(x['ID'],x['Name'],x["Unit"], \
+            int(x['Filter']),int(x['TickMax']), int(x['TickFast']), \
+            float(x['Threshold_Abs']), float(x['Threshold_Perc'])) for x in CHANNEL_CONFIG_LIST]
+
+        print(self.data_last_measured)
    
-    def _store_data(self, data_point, value=0.0, unit = "-", 
+    def _store_data(self, data_point, value=0.0, 
                     time = datetime.now()):
         """Abspeichern eines Wertes in einen Datenpunkt
 
@@ -85,13 +77,10 @@ class AquireData:
         :type data_point: class DataPoint
         :param value: abzuspeichernder Messwert, defaults to 0.0
         :type value: float, optional
-        :param unit: Einheit des Messwertes, defaults to "-"
-        :type unit: str, optional
         :param time: Zeitstempel des Messwertes, defaults to datetime.now()
         :type time: datetime objekt, optional
         """        
 
-        data_point.unit = unit
         data_point.update_value(value,time.timestamp())
 
     
@@ -109,12 +98,12 @@ class AquireData:
         isoTime = datetime.now()
                 
         for x in self.data_last_measured:
-            if x.name == self.__U_POWER_IT:
-                self._store_data(x,self.Ina.voltage(),"V",isoTime)
-            if x.name == self.__I_POWER_IT:
-                self._store_data(x,self.Ina.current(),"mA",isoTime)
-            if x.name == self.__P_POWER_IT:
-                self._store_data(x,self.Ina.power(),"mW",isoTime)
+            if x.id == "__U_POWER_IT":
+                self._store_data(x,self.Ina.voltage(),isoTime)
+            if x.id == "__I_POWER_IT":
+                self._store_data(x,self.Ina.current(),isoTime)
+            if x.id == "__P_POWER_IT":
+                self._store_data(x,self.Ina.power(),isoTime)
 
 
     def measure_adc(self):
@@ -133,12 +122,12 @@ class AquireData:
         isoTime = datetime.now()
                 
         for x in self.data_last_measured:        
-            if x.name == self.__U_ADC1:
-                self._store_data(x,self.Adc1.getVoltage(),"V",isoTime)
-            if x.name == self.__U_ADC2:
-                self._store_data(x,self.Adc2.getVoltage(),"V",isoTime)
-            if x.name == self.__U_ADC3:
-                self._store_data(x,self.Adc3.getVoltage(),"V",isoTime)
+            if x.id == "__U_ADC1":
+                self._store_data(x,self.Adc1.getVoltage(),isoTime)
+            if x.id == "__U_ADC2":
+                self._store_data(x,self.Adc2.getVoltage(),isoTime)
+            if x.id == "__U_ADC3":
+                self._store_data(x,self.Adc3.getVoltage(),isoTime)
     
     def measure_gyro(self):
         """Messung der Gyro Werte des MPU6050
@@ -155,20 +144,20 @@ class AquireData:
         gyro_data =self.mpu.get_gyro_data()
         
         for x in self.data_last_measured:        
-            if x.name == self.__ACC_X:
-                self._store_data(x,accel_data['x'],"g",isoTime)
-            if x.name == self.__ACC_Y:
-                self._store_data(x,accel_data['y'],"g",isoTime)
-            if x.name == self.__ACC_Z:
-                self._store_data(x,accel_data['z'],"g",isoTime)
-            if x.name == self.__GYRO_X:
-                self._store_data(x,gyro_data['x'],"dps",isoTime)
-            if x.name == self.__GYRO_Y:
-                self._store_data(x,gyro_data['y'],"dps",isoTime)
-            if x.name == self.__GYRO_Z:
-                self._store_data(x,gyro_data['z'],"dps",isoTime)
-            if x.name == self.__GYRO_TEMP:
-                self._store_data(x,self.mpu.get_temp(), 'grdC',isoTime)          
+            if x.id == "__ACC_X":
+                self._store_data(x,accel_data['x'],isoTime)
+            if x.id == "__ACC_Y":
+                self._store_data(x,accel_data['y'],isoTime)
+            if x.id == "__ACC_Z":
+                self._store_data(x,accel_data['z'],isoTime)
+            if x.id == "__GYRO_X":
+                self._store_data(x,gyro_data['x'],isoTime)
+            if x.id == "__GYRO_Y":
+                self._store_data(x,gyro_data['y'],isoTime)
+            if x.id == "__GYRO_Z":
+                self._store_data(x,gyro_data['z'],isoTime)
+            if x.id == "__GYRO_TEMP":
+                self._store_data(x,self.mpu.get_temp(), isoTime)          
             
     
     def aquire_data(self, print_out = False):

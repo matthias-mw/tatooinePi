@@ -27,12 +27,30 @@ class   DataPoint():
     :rtype:     Object
     """    
     
+    id: str='-'
+    """ID des Messkanals zur Auswahl in den Measure-Methoden"""
+    
     name: str = '-'
     """Name des Messkanals"""
     
     unit: str = '-'
     """Masseinheit des Messwertes"""
+   
+    filter_cnt: int = 4
+    """der Wert gibt die Breite des gleitenden Mittelwertes an"""
     
+    storage_tick_max: int = 20
+    """Ticker Wert bei dem der Kanal gespeichert wird"""
+
+    storage_tick_fast: int = 20
+    """Ticker Wert bei dem der Kanal gespeichert wird"""
+    
+    thd_deviation_abs: float = 10
+    """Absolute Abweichung des Messwertes, bei dem eine Speicherung unabhängig vom Tickerwert ausgelöst wird """
+    
+    thd_deviation_per: float = 5
+    """Prozentuale Abweichung des Messwertes, bei dem eine Speicherung unabhängig vom Tickerwert ausgelöst wird """
+        
     timestamp: float = 0
     """Zeitstempel des aktuellen Wertes"""
     
@@ -42,17 +60,6 @@ class   DataPoint():
     value_raw: float = 0
     """aktuell erfasster Messwert Wert ohne Nachbearbeitungen"""
     
-    filter_cnt: int = 4
-    
-    
-    storage_tick_counter: int = 0
-    
-    storage_tick_max: int = 20
-    interval_fast: float   = 0.1
-    thd_deviation_abs: float = 10
-    thd_deviation_per: float = 5
-    
-    
     value_mean: float = 0
     """Mittelwert der Historie"""
     
@@ -61,6 +68,9 @@ class   DataPoint():
     
     value_dev_abs: float = 0
     """absolute Abweichung des letzten Messwertes vom Mittelwert der Historie"""
+
+    storage_tick_counter: int = 0
+    """Ticker der in jeder ZEitschleife hochgezählt und erst bei Speichern resetiert wird"""
     
     history_length: int = 10
     """Anzahl der Werte die in der Historie gespeichert werden"""
