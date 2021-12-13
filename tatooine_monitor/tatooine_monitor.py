@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 import smbus
 import time
@@ -11,7 +11,7 @@ from aquireData.aquire_data import AquireData
 from aquireData.store_data import StoreDataToInflux
 
 
-MAIN_LOOP_LENGHT_MS = 200
+MAIN_LOOP_LENGHT_MS = 250
 
 # Get I2C bus
 bus = smbus.SMBus(1)
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     aquireData.helper.config_channels()
     Data = AquireData(bus)
 
-    
+    inflDB.check_db_connection()
 
     cnt = 0
     while True:
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         measured  = datetime.now() - start
         measured = measured.seconds + measured.microseconds / 1000000
         
-        inflDB.store_data(Data.data_last_measured,cnt)
+        inflDB.store_data(Data.data_last_measured)
         
         delta = datetime.now() - start
         delay = delta.seconds + delta.microseconds / 1000000
@@ -53,4 +53,4 @@ if __name__ == '__main__':
         
         else:
             time.sleep(delay)
-        
+
