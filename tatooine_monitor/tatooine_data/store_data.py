@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-
 #Schnittstelle zur InfluxDB
 from influxdb import InfluxDBClient
 # Klasse für die Abspeicherung der Datenpinkte
-from aquireData.datapoint import DataPoint
+from .datapoint import DataPoint
 
 
 class StoreDataToInflux:

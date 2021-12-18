@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
+
 #Modul zur Bearbeitung der Zeitstempel
 from datetime import datetime
 
 # Klasse für die Abspeicherung der Datenpunkte
-from aquireData.datapoint import DataPoint
+from .datapoint import DataPoint
 
 # Helper Modul stell Kanalkonfiguration zur Verfügung
-from aquireData.helper import *
+from .helper import *
 
 #i2c Treiber - AD-Wandler ADS1115
 from driver.i2c_ads1115  import ADS1115

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Modul zur Verarbeitung von CSV Dateien
 import csv
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 __author__ = "Matthias Werner"
 __copyright__ = "Copyright 2021, TatooineMonitor Projekt"
 __credits__ = ["Matthias Werner"]
@@ -14,11 +13,10 @@ from datetime import datetime
 import logging
 import smbus
 import time
-import aquireData.helper
 
-from aquireData.aquire_data import AquireData
-
-from aquireData.store_data import StoreDataToInflux
+from tatooine_data import AquireData
+from tatooine_data import StoreDataToInflux
+from tatooine_data import helper
 
 
 #=========================================================================
@@ -44,7 +42,7 @@ if __name__ == '__main__':
         INFLUX_PASSWORT,INFLUX_DB_NAME)
 
     
-    aquireData.helper.config_channels()
+    helper.config_channels()
     Data = AquireData(bus)
 
     inflDB.check_db_connection()

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Module zur Bearbeitung der Zeitstempel
 from datetime import datetime
 from pytz import timezone
