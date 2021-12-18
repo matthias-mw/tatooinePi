@@ -64,7 +64,6 @@ class AquireData:
             int(x['Filter']),int(x['TickMax']), int(x['TickFast']), \
             float(x['Threshold_Abs']), float(x['Threshold_Perc'])) for x in CHANNEL_CONFIG_LIST]
 
-        print(self.data_last_measured)
    
     def _store_data(self, data_point, value=0.0, 
                     time = datetime.now()):

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 
 #Schnittstelle zur InfluxDB
 from influxdb import InfluxDBClient
@@ -6,7 +8,12 @@ from aquireData.datapoint import DataPoint
 
 
 class StoreDataToInflux:
+    """ Klasse zur Abspeicherung der Messdaten in einen InfluxDB
     
+    In dieser Klasse sind alle HighLevel Methoden angelegt, welche
+    zur Speicherung von Messdaten in der InfluxDB benötigt werden.
+    
+    """
     
     _db_host = "127.0.0.1"
     """Hostadresse der InfluxDB"""
@@ -28,18 +35,33 @@ class StoreDataToInflux:
     client = None
     """Object des InfluxDB Clients"""
     
-    def __init__(self) -> None:
+    def __init__(self,host = str ("127.0.0.1"), port = int (8086), user = \
+        str("admin"), password = str("admin"), db_name = "sensors" ) -> None:
+        """Initialisierung des Verbindung zu InfluxDB
         
+        Es wird ein Client zur InfluxDB angelegt.
+
+        :param host:    Hostname der InfluxDB, defaults to str("127.0.0.1")
+        :type host:     str, optional
+        :param port:    Port der InfluxDB, defaults to int(8086)
+        :type port:     int, optional
+        :param user:    user der angemeldet werden soll, defaults to "admin"
+        :type user:     str, optional
+        :param password:    Passwort, defaults to "admin"
+        :type password:     str, optional
+        :param db_name:     Name der Datenbank, defaults to "sensors"
+        :type db_name:      str, optional
         
-        #TODO Initialisierung
+        """
+        
+       
         
         # Konfiguration der InfluxDatenbank
-        self._db_host = "192.168.1.45"   # IP der Datenbank
-        self._db_port = 8086             # default port
-        self._db_user = "admin"          # the user/password created for
-                                         # influxdb
-        self._db_password = "tatooinedb" 
-        self._db_name = "sensors"      # name der Datenbank
+        self._db_host = host        # IP der Datenbank
+        self._db_port = port        # default port
+        self._db_user = user        # the user/password created for influxdb
+        self._db_password = password 
+        self._db_name = db_name     # name der Datenbank
     
 
         # Create the InfluxDB client object
@@ -63,7 +85,7 @@ class StoreDataToInflux:
     
         return True
     
-    def store_data (self, current_data_list: list[DataPoint]):
+    def store_data (self, current_data_list: list[DataPoint]) -> None:
         """Abspeicherung der Messdaten in der InfluxDB Datenbank
         
         Es werden alle Datenunkte, welche in der Liste 'current_data_list' 
@@ -93,17 +115,17 @@ class StoreDataToInflux:
             #Wenn der Wert sich stark geändert hat
             if (chn.value_dev_abs > chn.thd_deviation_abs):
 
-                #das JSON des aktuellen Kanals anhängen        
-                json_list  += chn.create_json_lastvalue( \
-                    self._MEASUREMENT_NAME,self._TAG_LOCATION)
+                #das JSON des aktuellen Kanals inkl. vorletztem Wert anhängen 
+                json_list  += chn.create_json_for_influxDB( \
+                    self._MEASUREMENT_NAME,self._TAG_LOCATION, 2)
                 #den Counter für das Abspeichern zurücksetzen
-                chn.storage_tick_counter = 0            
-            
+                chn.storage_tick_counter = 0   
+
             elif (chn.storage_tick_counter >= chn.storage_tick_max):
                 
                 #das JSON des aktuellen Kanals anhängen        
-                json_list  += chn.create_json_lastvalue( \
-                    self._MEASUREMENT_NAME, self._TAG_LOCATION)
+                json_list  += chn.create_json_for_influxDB( \
+                    self._MEASUREMENT_NAME, self._TAG_LOCATION, 1)
                 #den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
                 

@@ -165,22 +165,70 @@ class   DataPoint():
         print('================================================================================')
 
 
-    def create_json_lastvalue(self,measurement = 'signal', location = 'tag'):
+    def create_json_for_influxDB(self,measurement = 'signal', location = 'tag',\
+        number_of_points = int(1) ):
         """Erstellen eines JSON Strings zur Abspeicherung der Daten in influxDB
         
         Mit der Funktion werden alle relevanten Werte so in einen JSON Objekt
-        zusammengestellt, das sie direkt in InfluxDB geschrieben werden können.
-
+        zusammengestellt, dass sie direkt in InfluxDB geschrieben werden können. Über den Parameter :param: 'number_of_points' kann die Anzahl der ausgegeben Datensätze bestimmt werden.
+        
+            1 ... nur der aktuelle, letzte Wert wird ausgegeben
+            2 ... es wird zusätzlich der vorletzte Wert aus der Historie    
+                  ausgegeben
+                
         :param measurement: Name des Measurement, defaults to 'Signal'
         :type measurement:  str, optional
         :param location:    Name das Location Tags, defaults to 'tag'
         :type location:     str, optional
+        :param number_of_points:    Anzahl der Datenpunkte in der JSON Liste,   
+                                    defaults to 1
+        :type number_of_points:     int, optional 
+        
         :return:    Ein JSON Eintrag der direkt in InfluxDB 
                     geschrieben werden kann
         :rtype: List[JSON]]
         """        
-        # Erzeuge JSON Datenstruktur passend zu InfluxDB
-        json_data = [
+        
+        #Liste mit JSON Objekten
+        json_data = []        
+        
+        # Erzeuge JSON Datenstruktur passend zu InfluxDB für den vorletzten
+        # Messwert
+        if ((number_of_points == 2) and (len(self.value_history) > 1)):
+            
+            #Berechnung aller Werte des vorletzten Messpunktes aus der Historie
+            timestamp = self.timestamp_history[len(self.timestamp_history)-2]
+            penultimate_val = self.value_history[len(self.value_history)-2]
+            
+            #Berechnung der Statistik des vorletzten Messpunktes 
+            penultimate_dev_abs = abs(self.value_mean - penultimate_val)
+            if self.value_mean == 0:
+                penultimate_dev_perc = float(0)
+            else:
+                penultimate_dev_perc = float(penultimate_dev_abs / \
+                    self.value_mean * 100)
+            
+            #Erstellung des JSON
+            json_data += [
+            {
+                "measurement": measurement,
+                    "tags": {
+                        "location": location,
+                    },
+                    "time": datetime.fromtimestamp(timestamp,tz_berlin),
+                    "fields": {
+                        self.name:      penultimate_val,
+                        self.name + "_raw":    penultimate_val,
+                        self.name + "_dev_abs":    penultimate_dev_abs,
+                        self.name + "_dev_perc":   penultimate_dev_perc,
+                        self.name + "_value_mean": self.value_mean
+                    }
+                }
+            ]
+       
+        # Erzeuge JSON Datenstruktur passend zu InfluxDB für den aktuellen 
+        # Messwert
+        json_data += [
         {
           "measurement": measurement,
               "tags": {
