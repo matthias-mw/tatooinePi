@@ -37,40 +37,39 @@ INFLUX_DB_NAME = "sensors"
 bus = smbus.SMBus(1)
 
 if __name__ == '__main__':
-        
+
+    # Konfiguration der Messkanäle
+    helper.config_channels()
+    
+    # Initialisierunfg der Verbindung zur InfluxDB
     inflDB = StoreDataToInflux(INFLUX_HOST, INFLUX_PORT, INFLUX_ADMIN, \
         INFLUX_PASSWORT,INFLUX_DB_NAME)
 
-    
-    helper.config_channels()
-    Data = AquireData(bus)
+    # Initialisierung der Datenerfassung
+    data_handle = AquireData(bus)
 
+    # Test der Verbindung zu InfluxDB
     inflDB.check_db_connection()
 
-    cnt = 0
     while True:
         
+        # Bestimmung der Startzeit der Schleife
         start = datetime.now()
         
-        cnt +=1
+        # Messen aller Sensoren
+        data_handle.aquire_data()
+        # Speichern der Messdaten
+        inflDB.store_data(data_handle.data_last_measured)
         
-        #TODO Debugging Ordentlich machen
         
-        Data.aquire_data()
-        measured  = datetime.now() - start
-        measured = measured.seconds + measured.microseconds / 1000000
-        
-        inflDB.store_data(Data.data_last_measured)
-        
+        # Bestimmung der noch verbleibenden Schleifenzeit        
         delta = datetime.now() - start
-        delay = delta.seconds + delta.microseconds / 1000000
-
-        
         delay = (MAIN_LOOP_LENGHT_MS / 1000) - (delta.seconds + \
             delta.microseconds / 1000000)
-        
         if (delay < 0):
-            print(str(delay) + " ----> " + str(measured) + " ----> " + str(datetime.now()))
+            # Die ZEitschleife wurde überschritten
+            print("{0:s}: -> Oberrun by {1:3f}s".format(str(datetime.now()), \
+                (delta.seconds + delta.microseconds / 1000000)))
         
         else:
             time.sleep(delay)
