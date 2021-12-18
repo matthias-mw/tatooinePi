@@ -23,20 +23,20 @@ from driver.i2c_mpu6050 import mpu6050
 class AquireData:
     """Klasse zur zentralen Datenerfassung
     
-    Mit dieser Klasse werde alle Messwerte von den verschiedenen Sensoren
+    Mit dieser Klasse werden alle Messwerte von den verschiedenen Sensoren
     erfasst und entsprechend aufbereitet, um sie dann in einem Datenpunkt
-    der Klasse XXXX abzuspeichern.
+    der Klasse :class:`~tatooine_data.datapoint.DataPoint` abzuspeichern.
     
     """    
     
     SHUNT_OHMS = 0.1
     """Widerstandswert (Ohm) des Shunt am INA219"""
     
-    _MAX_DATA_POINTS_HISTORY = 5
+    _MAX_DATA_POINTS_HISTORY = 8
     """Anzahl der Werte die in der Datenhistorie betrachtet werden"""     
   
     data_last_measured = []
-    """Array von Datapoint, welcher den aktuellen Messwert jedes verfügbaren Kanals bereit hält.
+    """Array von :class:`~tatooine_data.datapoint.DataPoint`, welcher den aktuellen Messwert jedes verfügbaren Kanals bereit hält.
     """  
     
     
@@ -112,7 +112,7 @@ class AquireData:
         
             Es können bis zu 4 Spannungen an den ADC Eingängen des ADS1115 über den I2C Bus gemessen werden.
             
-            TODO
+        .. todo::
             Schaltungsaufbau beschreiben
             
         """        
@@ -164,8 +164,10 @@ class AquireData:
     def aquire_data(self, print_out = False):
         """Zentrale Funktion zum Messen und anzeigen aller Daten
         
-        Die Funktion fragt nach einander alle verbauten Sensoren ab und speichert damit die werte in den Array[Datapoint] data_last_measured ab. Anschließend erfolgt eine Ausgabe in der Console.
-                
+        Die Funktion fragt nach einander alle verbauten Sensoren ab und speichert damit die werte in den Array[:class:`~tatooine_data.datapoint.DataPoint`] data_last_measured ab. Anschließend erfolgt eine Ausgabe in der Console, sofern print_out=True.
+        
+        :param print_out:   Ausdruck der Messwerte erfolgt in die Konsole
+        :type print_out:    Bool                
         """        
 
         #----------------------------------------------------------------------------

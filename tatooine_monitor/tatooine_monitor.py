@@ -68,7 +68,7 @@ if __name__ == '__main__':
             delta.microseconds / 1000000)
         if (delay < 0):
             # Die ZEitschleife wurde überschritten
-            print("{0:s}: -> Oberrun by {1:3f}s".format(str(datetime.now()), \
+            print("{0:s}: -> Oberrun by {1:0.3f}s".format(str(datetime.now()), \
                 (delta.seconds + delta.microseconds / 1000000)))
         
         else:

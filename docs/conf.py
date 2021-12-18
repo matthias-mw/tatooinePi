@@ -37,10 +37,16 @@ release = '0.01'
 extensions = [ 'sphinx.ext.autodoc',
                'sphinx.ext.doctest',
                'sphinx.ext.intersphinx',
-               'sphinx.ext.autosummary'
+               'sphinx.ext.autosectionlabel',
+               'sphinx.ext.autosummary',
+               'sphinx.ext.todo'
               ]
 autodoc_default_flags = ['members']
 autosummary_generate = False
+todo_include_todos=True
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

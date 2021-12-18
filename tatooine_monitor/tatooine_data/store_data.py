@@ -7,7 +7,7 @@ from .datapoint import DataPoint
 
 
 class StoreDataToInflux:
-    """ Klasse zur Abspeicherung der Messdaten in einen InfluxDB
+    """Klasse zur Abspeicherung der Messdaten in einer InfluxDB
     
     In dieser Klasse sind alle HighLevel Methoden angelegt, welche
     zur Speicherung von Messdaten in der InfluxDB benötigt werden.
@@ -29,7 +29,6 @@ class StoreDataToInflux:
     """Name des Mesurements in der InfluxDB"""
     _TAG_LOCATION = 'tatooine'
     """Wert des Tags 'location' in der InfluxDB"""
-    
     
     client = None
     """Object des InfluxDB Clients"""
@@ -91,18 +90,15 @@ class StoreDataToInflux:
         enthalten sind, in die InfluxDB gespeichert. Die Speicherung erfolgt 
         wenn:
         
-        - die Anzahl Schleifen größer dem "TickMax" des Messkanals ist
-        - die Abweichung des letzten Messwertes größer "Threshold_Abs" ist
-        - ....
+        - die Anzahl Schleifen größer dem :mod:`~tatooine_data.datapoint.DataPoint.storage_tick_max` des Messkanals ist
+        - die Abweichung des letzten Messwertes größer :mod:`~tatooine_data.datapoint.DataPoint.thd_deviation_abs` ist
+  
 
         Im Falle der Speicherung wird zunächst durch 
-        :func: 'datapoint.create_json_lastvalue' eine JSON Objekt erzeugt und
-        dann Kanal für Kanal in einen Liste von JSON Objekten überführt. Anschließend wird diese Liste an die InfluxDB gesendet.
+        :func:`~tatooine_data.datapoint.DataPoint.create_json_for_influxDB` ein JSON Objekt erzeugt und dann Kanal für Kanal in eine Liste von JSON Objekten überführt. Anschließend wird diese Liste an die InfluxDB gesendet.
 
-        :param current_data_list: [description]
+        :param current_data_list: Liste mit den aktuellen Messwerten
         :type current_data_list: list[DataPoint]
-        :param tick: [description]
-        :type tick: [type]
         """
         
         #Liste von JSON Dictonaries die in InfluxDB geschrieben wir

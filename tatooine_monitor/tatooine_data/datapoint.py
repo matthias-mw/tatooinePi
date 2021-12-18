@@ -16,11 +16,11 @@ tz_berlin = timezone('Europe/Berlin')
 class   DataPoint():
     """Datenpunkt Objekt welches alle Informationen eines Messpunktes enthält
 
-    Das Objekt :class 'DataPoint' hält alle Informationen und Methoden die 
+    Das Objekt hält alle Informationen und Methoden die 
     notwendig sind einzelne Datenpunkte zu verwalten. Folgende features sind beinhaltet:
     
     * Speichern des Messwertes und des Zeitstempels
-    * Abspeichern einer Historie von x Werten
+    * Abspeichern einer Historie von :mod:`~tatooine_data.aquire_data.AquireData._MAX_DATA_POINTS_HISTORY` Werten
     * Filterung
     * Berechnung Mittelwert der Historie und Abweichung dazu
     
@@ -78,10 +78,10 @@ class   DataPoint():
     """Anzahl der Werte die in der Historie gespeichert werden"""
         
     timestamp_history: list[float] = field(default_factory=list)
-    """Historie am Zeitstempeln mit der Länge :func: `aquireData.aquire_data.DataPoint.history_length` """ 
+    """Historie am Zeitstempeln mit der Länge :mod:`~tatooine_data.aquire_data.AquireData._MAX_DATA_POINTS_HISTORY` """ 
     
     value_history: list[float] = field(default_factory=list)
-    """Historie am Messwerten mit der Länge :func: `aquireData.aquire_data.DataPoint.history_length` """    
+    """Historie am Messwerten mit der Länge :mod:`~tatooine_data.aquire_data.AquireData._MAX_DATA_POINTS_HISTORY` """    
     
     
     def update_value(self, new_value, new_timestamp):
@@ -90,11 +90,18 @@ class   DataPoint():
         Es wird der neue Messwert und dessen Zeitstempel in der Klasse 
         abgespeichert, sowie anschließend alle neuen Statistikberechnungen
         durchgeführt.
+        
+        Folgende Schritte werden ausgeführt:
+        
+        1. Löschen des ältesten Wertes der Historie
+        2. Filtern des aktuellen Wertes durch Mittelwertbildung mit den letzten :mod:`~tatooine_data.datapoint.DataPoint.filter_cnt` Werten der Historie.
+        3. Speichern in der neuen Werte in der Historie :mod:`~tatooine_data.aquire_data.AquireData._MAX_DATA_POINTS_HISTORY`
+        4. Berechnung des neuen Mittelwertes der Historie und der Abweichung des letzten Wertes von diesem Mittelwert
 
-        :param new_value        neuer Messwert zum abspeichern
-        :type:                  float
-        :param new_timestamp    Zeitstempel des neuen Messwertes 
-        :type:                  datetime
+        :param new_value: neuer Messwert zum abspeichern
+        :type new_value:  float
+        :param new_timestamp:    Zeitstempel des neuen Messwertes 
+        :type new_timestamp:  datetime
         """        
         
         #-----------------------------------------------------------------------
@@ -105,15 +112,6 @@ class   DataPoint():
             
         if len(self.timestamp_history) >= self.history_length:
             del self.timestamp_history[0]
-        
-        #-----------------------------------------------------------------------
-        # Updaten der Werte und Historie
-        #-----------------------------------------------------------------------
-        self.value_history.append(new_value)
-        self.value_raw = new_value
-        self.timestamp_history.append(new_timestamp)
-        self.timestamp = new_timestamp
-        
         
         #-----------------------------------------------------------------------
         # Nachbearbeitung (filtern) des aktuellen Messwertes
@@ -128,6 +126,14 @@ class   DataPoint():
             # übernommen
             self.value = new_value
         
+        #-----------------------------------------------------------------------
+        # Updaten der Werte und Historie
+        #-----------------------------------------------------------------------
+        self.value_history.append(self.value)
+        self.value_raw = new_value
+        self.timestamp_history.append(new_timestamp)
+        self.timestamp = new_timestamp
+
         
         #-----------------------------------------------------------------------
         # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte
@@ -159,7 +165,7 @@ class   DataPoint():
     
     def print_header():
         """ Print Funktion zur Darstellung eines Headers für die Zeilendarstellung 
-            der MEsswerte
+            der Messwerte
         """        
         
         print(chr(27) + "[2J")
@@ -172,11 +178,10 @@ class   DataPoint():
         """Erstellen eines JSON Strings zur Abspeicherung der Daten in influxDB
         
         Mit der Funktion werden alle relevanten Werte so in einen JSON Objekt
-        zusammengestellt, dass sie direkt in InfluxDB geschrieben werden können. Über den Parameter :param: 'number_of_points' kann die Anzahl der ausgegeben Datensätze bestimmt werden.
+        zusammengestellt, dass sie direkt in InfluxDB geschrieben werden können. Über den Parameter 'number_of_points' kann die Anzahl der ausgegeben Datensätze bestimmt werden.
         
-            1 ... nur der aktuelle, letzte Wert wird ausgegeben
-            2 ... es wird zusätzlich der vorletzte Wert aus der Historie    
-                  ausgegeben
+        - number_of_points = 1 ... nur der aktuelle, letzte Wert wird ausgegeben
+        - number_of_points = 2 ... es wird zusätzlich der vorletzte Wert aus der Historie ausgegeben
                 
         :param measurement: Name des Measurement, defaults to 'Signal'
         :type measurement:  str, optional

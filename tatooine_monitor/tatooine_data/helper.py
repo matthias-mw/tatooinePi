@@ -8,19 +8,15 @@ CONF_FILE = "config_channels.csv"
 """Konfigurationsdatei für die Messkanäle als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
 
 CHANNEL_CONFIG_LIST = []
-"""Liste mit allen Messkanälen und Ihren Eigenschaften"""
+"""Liste mit allen Messkanälen und Ihren Eigenschaften :doc:`config_channels` """
 
 def config_channels():
     """Konfiguartion aller Messkanäle
     
-    Zu Beginn des Programms wird die Datei :func: 'CONF_FILE' gelesen. 
+    Zu Beginn des Programms wird die Datei :file:`config_channels.csv` gelesen. 
     In Ihr sind alle relevanten Infos pro Kanal Zeilenweise aufgeführt. So
     werden alle Parameter (z.B. Filter, Schellen, Speicherinterval etc.) 
-    in die :func: 'CHANNEL_CONFIG_LIST' eingelesen und in der Funktion 
-    :func: 'AquireData.__init__' in die Beschreibung des jeweiligen Kanals
-    übernommen.
-    
-    
+    in die :mod:`~tatooine_data.helper.CHANNEL_CONFIG_LIST` eingelesen und in der Funktion :class:`~tatooine_data.aquire_data.AquireData` in die Beschreibung des jeweiligen Kanals übernommen.
     
     """    
      
