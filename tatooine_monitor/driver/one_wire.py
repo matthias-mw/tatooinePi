@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import re
+import time
+import concurrent.futures
 from os import listdir, path
 from os.path import isfile, join
 
@@ -57,6 +59,7 @@ class OneWire:
                         # Berechne das Ergebnis
                         value = str(float(m.group(2)) / 1000.0)            
                         
+                        print(f'{id} hat aktuell den Wert: {value} GrdC')
                         
         # Fehlermeldung sollte 1-Wire Sensor nicht lesbar sein
         except(IOError):
@@ -67,6 +70,7 @@ class OneWire:
 
 
 
+start = time.perf_counter()
 
 sensor = OneWire()
 
@@ -75,9 +79,19 @@ print(sensor)
 sensor.show_all_devices()
 
 
-for i in sensor.list_all_devices():
-    print (sensor.read_1w_sensor_ds18s20(i))
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    
+    results = [executor.submit(sensor.read_1w_sensor_ds18s20,i) for i in sensor.list_all_devices()]
 
+    for f in concurrent.futures.as_completed(results):
+        print(f.result())
+
+  
+
+finish = time.perf_counter()
+
+
+print(f'Finished in {round(finish-start,2)} s')
 
 # Bespiel für DS18S20 Sensor Filename
 # 28-0121131907b3
