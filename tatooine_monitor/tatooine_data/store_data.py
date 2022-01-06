@@ -106,26 +106,34 @@ class StoreDataToInflux:
         
         #Für jeden Kanal überprüfen, ob er geschrieben werden muss
         for chn in current_data_list:
-        
-            #Wenn der Wert sich stark geändert hat
-            if (chn.value_dev_abs > chn.thd_deviation_abs):
+                
+            #Wenn der Wert sich erstmalig stark geändert hat
+            if (chn.value_dev_abs > chn.thd_deviation_abs) and \
+                not(chn.storage_prelim_hysterese):
 
-                #das JSON des aktuellen Kanals inkl. vorletztem Wert anhängen 
+                # das JSON des aktuellen Kanals inkl. vorletztem Wert anhängen 
                 json_list  += chn.create_json_for_influxDB( \
                     self._MEASUREMENT_NAME,self._TAG_LOCATION, 2)
-                #den Counter für das Abspeichern zurücksetzen
-                chn.storage_tick_counter = 0   
+                # den Counter für das Abspeichern zurücksetzen
+                chn.storage_tick_counter = 0  
+                # die Sprungerkennung abspeichern
+                chn.storage_prelim_hysterese = True
 
-            elif (chn.storage_tick_counter >= chn.storage_tick_max):
+            elif (chn.storage_tick_counter >= chn.storage_tick_max) or \
+                (chn.value_dev_abs > chn.thd_deviation_abs):
                 
-                #das JSON des aktuellen Kanals anhängen        
+                # das JSON des aktuellen Kanals anhängen        
                 json_list  += chn.create_json_for_influxDB( \
                     self._MEASUREMENT_NAME, self._TAG_LOCATION, 1)
-                #den Counter für das Abspeichern zurücksetzen
+                # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
                 
             else:
                 chn.storage_tick_counter += 1
+            
+            if (chn.value_dev_abs < chn.thd_deviation_abs):
+                # die Sprungerkennung zurücksetzen
+                chn.storage_prelim_hysterese = False
         
         # Schreibe die Daten in die Datenbank
         self.client.write_points(json_list)    

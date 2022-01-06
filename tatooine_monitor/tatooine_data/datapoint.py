@@ -74,6 +74,9 @@ class   DataPoint():
     storage_tick_counter: int = 0
     """Ticker der in jeder ZEitschleife hochgezählt und erst bei Speichern resetiert wird"""
     
+    storage_prelim_hysterese: bool = True
+    """Bei einer großen Abweichung wird auch der vorangegangene Wert mit abgespeichert, um das sprungevent Zeitlich auflösen zu können. Dies erfolgt aber nur einmalig zu Beginn, dazu wird dieses Bit dan auf True gesetzt und erst nach der nächsten Unterschreitung der Sprungerkennung resettiert"""
+    
     history_length: int = 10
     """Anzahl der Werte die in der Historie gespeichert werden"""
         
@@ -112,15 +115,7 @@ class   DataPoint():
             
         if len(self.timestamp_history) >= self.history_length:
             del self.timestamp_history[0]
-        
-        #-----------------------------------------------------------------------
-        # Updaten der Werte und Historie
-        #-----------------------------------------------------------------------
-        self.value_history.append(self.value)
-        self.value_raw = new_value
-        self.timestamp_history.append(new_timestamp)
-        self.timestamp = new_timestamp
-
+                        
         #-----------------------------------------------------------------------
         # Nachbearbeitung (filtern) des aktuellen Messwertes
         #-----------------------------------------------------------------------
@@ -133,24 +128,37 @@ class   DataPoint():
             # Wenn noch keinen Historie vorhanden, dann wird der Rohwert 
             # übernommen
             self.value = new_value
-        
+
+        #-----------------------------------------------------------------------
+        # Updaten der Werte und Historie
+        #-----------------------------------------------------------------------
+        self.value_history.append(self.value)
+        self.value_raw = new_value
+        self.timestamp_history.append(new_timestamp)
+        self.timestamp = new_timestamp
+
         #-----------------------------------------------------------------------
         # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte
         # Historie
         #-----------------------------------------------------------------------
-        mean = 0        
-        for x in self.value_history:
-            mean += x
-               
-        #Berechne die Statistikdaten
-        self.value_mean = mean / len(self.value_history)
-        self.value_dev_abs = abs(self.value_mean - self.value)
-        if self.value_mean == 0:
-            self.value_dev_perc = float(0)
+        if (len(self.value_history)>= (self.history_length)):
+            mean = 0        
+            for x in self.value_history:
+                mean += x
+                
+            #Berechne die Statistikdaten
+            self.value_mean = mean / len(self.value_history)
+            self.value_dev_abs = abs(self.value_mean - self.value)
+            if self.value_mean == 0:
+                self.value_dev_perc = float(0)
+            else:
+                self.value_dev_perc = float(self.value_dev_abs / self.value_mean 
+                                            *100)
         else:
-            self.value_dev_perc = float(self.value_dev_abs / self.value_mean 
-                                        *100)
-        
+            # Sonderfall nach Einschalten der Messung
+            self.value_mean = self.value
+            self.value_dev_abs = float(0)
+            self.value_dev_perc = float(0)
         
     def print_data_line(self):
         """ Print Funktion zur Darstellung des Messwertes und der Statistik in
