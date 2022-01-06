@@ -84,7 +84,7 @@ class   DataPoint():
     """Historie am Messwerten mit der Länge :mod:`~tatooine_data.aquire_data.AquireData._MAX_DATA_POINTS_HISTORY` """    
     
     
-    def update_value(self, new_value, new_timestamp):
+    def update_value(self, new_value = float , new_timestamp = datetime):
         """Updaten des Messwertes in der Dataclass
         
         Es wird der neue Messwert und dessen Zeitstempel in der Klasse 
@@ -114,6 +114,14 @@ class   DataPoint():
             del self.timestamp_history[0]
         
         #-----------------------------------------------------------------------
+        # Updaten der Werte und Historie
+        #-----------------------------------------------------------------------
+        self.value_history.append(self.value)
+        self.value_raw = new_value
+        self.timestamp_history.append(new_timestamp)
+        self.timestamp = new_timestamp
+
+        #-----------------------------------------------------------------------
         # Nachbearbeitung (filtern) des aktuellen Messwertes
         #-----------------------------------------------------------------------
         if len(self.value_history) >= self.filter_cnt:
@@ -125,15 +133,6 @@ class   DataPoint():
             # Wenn noch keinen Historie vorhanden, dann wird der Rohwert 
             # übernommen
             self.value = new_value
-        
-        #-----------------------------------------------------------------------
-        # Updaten der Werte und Historie
-        #-----------------------------------------------------------------------
-        self.value_history.append(self.value)
-        self.value_raw = new_value
-        self.timestamp_history.append(new_timestamp)
-        self.timestamp = new_timestamp
-
         
         #-----------------------------------------------------------------------
         # Berechnung der Mittelwerte und aktuellen Abweichung für die gesamte
@@ -224,8 +223,8 @@ class   DataPoint():
                     },
                     "time": datetime.fromtimestamp(timestamp,tz_berlin),
                     "fields": {
-                        self.name:      penultimate_val,
-                        self.name + "_raw":    penultimate_val,
+                        self.name:      float(penultimate_val),
+                        self.name + "_raw":    float(penultimate_val),
                         self.name + "_dev_abs":    penultimate_dev_abs,
                         self.name + "_dev_perc":   penultimate_dev_perc,
                         self.name + "_value_mean": self.value_mean
@@ -243,14 +242,13 @@ class   DataPoint():
               },
               "time": datetime.fromtimestamp(self.timestamp,tz_berlin),
               "fields": {
-                  self.name:      self.value,
-                  self.name + "_raw":    self.value_raw,
+                  self.name:      float(self.value),
+                  self.name + "_raw":       float(self.value_raw),
                   self.name + "_dev_abs":    self.value_dev_abs,
                   self.name + "_dev_perc":   self.value_dev_perc,
                   self.name + "_value_mean": self.value_mean
               }
           }
         ]
-        
         return json_data
 
