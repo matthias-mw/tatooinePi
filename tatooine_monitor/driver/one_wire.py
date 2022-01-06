@@ -32,6 +32,15 @@ class OneWire:
         
         return sensors    
 
+    def list_ds18s20_devices(self):
+
+        # Alle Files der 1Wire Sensoren extrahieren
+        # typischer Aufbau des Filenamens (3a-0000003820a6)
+        sensors = [f for f in listdir(self._path_to_1W_sensors) \
+            if re.match(r"28-[0-9a-f]{12}", f) ]
+        
+        return sensors  
+
     def show_all_devices(self):
         
         # Ausgabe der Sensoren
@@ -59,39 +68,39 @@ class OneWire:
                         # Berechne das Ergebnis
                         value = str(float(m.group(2)) / 1000.0)            
                         
-                        print(f'{id} hat aktuell den Wert: {value} GrdC')
+                        # print(f'{id} hat aktuell den Wert: {value} GrdC')
                         
         # Fehlermeldung sollte 1-Wire Sensor nicht lesbar sein
         except(IOError):
                 print ("Error reading ", path)
                 value = None
         
-        return value
+        return [id,float(value)]
 
 
 
-start = time.perf_counter()
+# start = time.perf_counter()
 
-sensor = OneWire()
+# sensor = OneWire()
 
-print(sensor)
+# print(sensor)
 
-sensor.show_all_devices()
+# sensor.show_all_devices()
 
 
-with concurrent.futures.ThreadPoolExecutor() as executor:
+# with concurrent.futures.ThreadPoolExecutor() as executor:
     
-    results = [executor.submit(sensor.read_1w_sensor_ds18s20,i) for i in sensor.list_all_devices()]
+#     results = [executor.submit(sensor.read_1w_sensor_ds18s20,i) for i in sensor.list_all_devices()]
 
-    for f in concurrent.futures.as_completed(results):
-        print(f.result())
+#     for f in concurrent.futures.as_completed(results):
+#         print(f.result())
 
   
 
-finish = time.perf_counter()
+# finish = time.perf_counter()
 
 
-print(f'Finished in {round(finish-start,2)} s')
+# print(f'Finished in {round(finish-start,2)} s')
 
 # Bespiel für DS18S20 Sensor Filename
 # 28-0121131907b3

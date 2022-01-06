@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-#Modul zur Bearbeitung der Zeitstempel
+# Modul zur Bearbeitung der Zeitstempel
 from datetime import datetime
+
+# Modul zum Multithreading
+import concurrent.futures
 
 # Klasse für die Abspeicherung der Datenpunkte
 from .datapoint import DataPoint
@@ -16,8 +19,8 @@ from driver.i2c_ina219 import INA219
 from driver.i2c_ina219 import DeviceRangeError
 #i2c Treiber - Gyroscope
 from driver.i2c_mpu6050 import mpu6050
-
-
+# 1Wire Treiber
+from driver.one_wire import OneWire
 
 
 class AquireData:
@@ -50,6 +53,7 @@ class AquireData:
         """        
         self.i2c_bus = bus
         
+        # Objekte für die Spannungsmessung anlegen
         self.Adc1 = ADS1115(bus,ADS1115.MUX_AIN0_GND,4.096)
         self.Adc2 = ADS1115(bus,ADS1115.MUX_AIN1_GND,4.096)
         self.Adc3 = ADS1115(bus,ADS1115.MUX_AIN2_GND,4.096)
@@ -57,9 +61,11 @@ class AquireData:
         # Objekt für die Powerüberwachung anlegen
         self.Ina = INA219(self.SHUNT_OHMS,3,1,0x40)
 
-        #Objekt für den MPU6050 anlegen
+        # Objekt für den MPU6050 anlegen
         self.mpu = mpu6050(0x68)
 
+        # Objekt für den 1-Wire Bus anlegen
+        self.one_wire = OneWire()
         
         #initialisierung der aktuellen Messdaten
         self.data_last_measured =[DataPoint(x['ID'],x['Name'],x["Unit"], \
@@ -161,32 +167,66 @@ class AquireData:
                 self._store_data(x,self.mpu.get_temp(), isoTime)          
             
     
-    def aquire_data(self, print_out = False):
+    def measure_1wire_ds18s20(self):
+
+        isoTime = datetime.now()
+
+        # Starten der Multithreading Abfrage des 1-Wire Devices
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Einen Thread pro DS18s20 starten
+            results = [executor.submit(self.one_wire.read_1w_sensor_ds18s20,i) 
+                       for i in self.one_wire.list_ds18s20_devices()]
+            
+            # Wenn die Sensoren geantwortet haben
+            for f in concurrent.futures.as_completed(results):
+                # Abspeichern des entsprechenden Ergebnisses im Speicher der 
+                # aktuellen Werte
+                for x in self.data_last_measured:        
+                    if x.id == f.result()[0]:
+                        self._store_data(x,float(f.result()[1]),isoTime)
+
+        
+
+        
+        
+        
+    
+    def aquire_data_i2c(self):
         """Zentrale Funktion zum Messen und anzeigen aller Daten
+        
+        #TODO ANPASSEN
         
         Die Funktion fragt nach einander alle verbauten Sensoren ab und speichert damit die werte in den Array[:class:`~tatooine_data.datapoint.DataPoint`] data_last_measured ab. Anschließend erfolgt eine Ausgabe in der Console, sofern print_out=True.
         
-        :param print_out:   Ausdruck der Messwerte erfolgt in die Konsole
-        :type print_out:    Bool                
+        
         """        
 
-        #----------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-        #----------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         self.measure_power()
         self.measure_adc()
         self.measure_gyro()
        
-        #----------------------------------------------------------------------------
-        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-        #----------------------------------------------------------------------------
+       
+        # #-----------------------------------------------------------------------
+        # # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
+        # #-----------------------------------------------------------------------
         
-        if print_out:
-            DataPoint.print_header()
-            for x in self.data_last_measured:
-                DataPoint.print_data_line(x)
+        # if print_out:
+        #     DataPoint.print_header()
+        #     for x in self.data_last_measured:
+        #         DataPoint.print_data_line(x)
             
-  
+
+    def aquire_data_1wire(self):
+        
+        
+        
+        #-----------------------------------------------------------------------
+        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
+        #-----------------------------------------------------------------------
+        self.measure_1wire_ds18s20()
                      
                 
         
