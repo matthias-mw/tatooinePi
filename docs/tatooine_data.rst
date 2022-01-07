@@ -15,7 +15,7 @@ Datenerfassung und Speicherung
    :members:
    :private-members: _MEASUREMENT_NAME,_TAG_LOCATION
 
-@dataclass als Speicherformat fÃ¼r die Messdaten
+@dataclass als Speicherformat für die Messdaten
 -----------------------------------------------
 
 .. automodule:: tatooine_data.datapoint

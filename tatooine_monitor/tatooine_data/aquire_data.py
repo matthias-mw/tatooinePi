@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding: ISO-8859-1 
+# coding: ISO-8859-1  
 
 # Modul zur Bearbeitung der Zeitstempel
 from datetime import datetime
@@ -92,12 +92,11 @@ class AquireData:
         data_point.update_value(value,time.timestamp())
 
     
-    def measure_power(self):
+    def measure_power(self) -> None:
         """Messung der Leistungsaufnahme des INA219
         
-        Mittels des INA219 Sensors wird über I2C die aktuelle Spannung, die Stromaufnahme und die Leistungsaufnahme gemessen.
+        Mittels des INA219 Sensors wird über I2C die aktuelle Spannung, die Stromaufnahme und die Leistungsaufnahme gemessen. Anschließend speichert die Methode die Werte in den Array[:class:`~tatooine_data.datapoint.DataPoint.data_last_measured`] ab.
         """        
-        
         
         #--------------------------------------------------------------------
         # Erfassung der Messwerte des INA219 und anschließendes Abspeichern 
@@ -114,10 +113,11 @@ class AquireData:
                 self._store_data(x,self.Ina.power(),isoTime)
 
 
-    def measure_adc(self):
+    def measure_adc(self) -> None:
         """Messung von analogen Spannungen am ADS1115
         
-            Es können bis zu 4 Spannungen an den ADC Eingängen des ADS1115 über den I2C Bus gemessen werden.
+        Es können bis zu 4 Spannungen an den ADC Eingängen des ADS1115 über den I2C Bus gemessen werden.
+        Anschließend speichert sie die Werte in den Array :class:`~tatooine_data.datapoint.DataPoint.data_last_measured`] ab.
             
         .. todo::
             Schaltungsaufbau beschreiben
@@ -137,10 +137,10 @@ class AquireData:
             if x.id == "__U_ADC3":
                 self._store_data(x,self.Adc3.getVoltage(),isoTime)
     
-    def measure_gyro(self):
+    def measure_gyro(self) -> None:
         """Messung der Gyro Werte des MPU6050
         
-        Mit dieser Funktion werden alle Messwert des MPU6050 über den I2C Bus ausgelesen. So können Beschleunigungen und Gierwinkel über die Achsen X,Y,Z erfasst werden.
+        Mit dieser Funktion werden alle Messwert des MPU6050 über den I2C Bus ausgelesen. So können Beschleunigungen und Gierwinkel über die Achsen X, Y,Z erfasst werden. Anschließend speichert sie die Werte in den Array[:class:`~tatooine_data.datapoint.DataPoint.data_last_measured`] ab. 
         
         """        
         
@@ -168,8 +168,12 @@ class AquireData:
                 self._store_data(x,self.mpu.get_temp(), isoTime)          
             
     
-    def measure_1wire_ds18s20(self):
-
+    def measure_1wire_ds18s20(self) -> None:
+        """Auslesen aller DS18S20 Sensoren im 1-Wire Bus
+        
+        Die Methode fragt nach einander alle verbauten DS18S20 Sensoren ab und speichert die Werte in den Array[:class:`~tatooine_data.datapoint.DataPoint.data_last_measured`] ab. 
+        
+        """
         isoTime = datetime.now()
 
         # Starten der Multithreading Abfrage des 1-Wire Devices
@@ -186,19 +190,11 @@ class AquireData:
                     if x.id == f.result()[0]:
                         self._store_data(x,float(f.result()[1]),isoTime)
 
-        
 
+    def aquire_data_i2c(self) -> None:
+        """Zentrale Methode zum Messen aller i2c Sensoren
         
-        
-        
-    
-    def aquire_data_i2c(self):
-        """Zentrale Funktion zum Messen und anzeigen aller Daten
-        
-        #TODO ANPASSEN
-        
-        Die Funktion fragt nach einander alle verbauten Sensoren ab und speichert damit die werte in den Array[:class:`~tatooine_data.datapoint.DataPoint`] data_last_measured ab. Anschließend erfolgt eine Ausgabe in der Console, sofern print_out=True.
-        
+        Die Methode aktualisiert alle Messwerte der verbauten i2c Sensoren.
         
         """        
 
@@ -208,27 +204,28 @@ class AquireData:
         self.measure_power()
         self.measure_adc()
         self.measure_gyro()
-       
-       
-        # #-----------------------------------------------------------------------
-        # # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-        # #-----------------------------------------------------------------------
         
-        # if print_out:
-        #     DataPoint.print_header()
-        #     for x in self.data_last_measured:
-        #         DataPoint.print_data_line(x)
-            
 
-    def aquire_data_1wire(self):
+    def aquire_data_1wire(self) -> None:
+        """Zentrale Methode zum auslesen aller 1 Wire Sensoren
         
-        
+        Die Methode aktualisiert alle Messwerte der verbauten 1-Wire Sensoren.
+        """        
         
         #-----------------------------------------------------------------------
         # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
         #-----------------------------------------------------------------------
         self.measure_1wire_ds18s20()
                      
-                
-        
+
+    # ToDo Ausgabefunktion für die Konsole erstellen
+    #-----------------------------------------------------------------------
+    # # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
+    # #-----------------------------------------------------------------------
+    
+    # if print_out:
+    #     DataPoint.print_header()
+    #     for x in self.data_last_measured:
+    #         DataPoint.print_data_line(x)                
+    
  

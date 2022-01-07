@@ -1,7 +1,7 @@
 # tatooinePi
 Raspberry Pi on SV Tatooine
 ---------------------------
-Ziel des Projektes ist es einen Ãœberwachung einer Segelyyacht aus der Ferne zu gewÃ¤hrleisten.
+Ziel des Projektes ist es einen Überwachung einer Segelyyacht aus der Ferne zu gewährleisten.
 
 Dazu sollen folgende Features implemetiert werden:
 
@@ -23,6 +23,6 @@ Dazu sollen folgende Features implemetiert werden:
 2. Speichern dieser Daten in einer InluxDB
 
 
-3. ErmÃ¶glichen des externen Zugriffes auf diese Daten
+3. Ermöglichen des externen Zugriffes auf diese Daten
 
-4. Installation einer Ãœberwachungskamera
+4. Installation einer Überwachungskamera

@@ -3,7 +3,7 @@
 
 #Schnittstelle zur InfluxDB
 from influxdb import InfluxDBClient
-# Klasse fÃ¼r die Abspeicherung der Datenpinkte
+# Klasse für die Abspeicherung der Datenpinkte
 from .datapoint import DataPoint
 
 
@@ -11,7 +11,7 @@ class StoreDataToInflux:
     """Klasse zur Abspeicherung der Messdaten in einer InfluxDB
     
     In dieser Klasse sind alle HighLevel Methoden angelegt, welche
-    zur Speicherung von Messdaten in der InfluxDB benÃ¶tigt werden.
+    zur Speicherung von Messdaten in der InfluxDB benötigt werden.
     
     """
     
@@ -91,12 +91,12 @@ class StoreDataToInflux:
         enthalten sind, in die InfluxDB gespeichert. Die Speicherung erfolgt 
         wenn:
         
-        - die Anzahl Schleifen grÃ¶ÃŸer dem :mod:`~tatooine_data.datapoint.DataPoint.storage_tick_max` des Messkanals ist
-        - die Abweichung des letzten Messwertes grÃ¶ÃŸer :mod:`~tatooine_data.datapoint.DataPoint.thd_deviation_abs` ist
+        - die Anzahl Schleifen größer dem :mod:`~tatooine_data.datapoint.DataPoint.storage_tick_max` des Messkanals ist
+        - die Abweichung des letzten Messwertes größer :mod:`~tatooine_data.datapoint.DataPoint.thd_deviation_abs` ist
   
 
-        Im Falle der Speicherung wird zunÃ¤chst durch 
-        :func:`~tatooine_data.datapoint.DataPoint.create_json_for_influxDB` ein JSON Objekt erzeugt und dann Kanal fÃ¼r Kanal in eine Liste von JSON Objekten Ã¼berfÃ¼hrt. AnschlieÃŸend wird diese Liste an die InfluxDB gesendet.
+        Im Falle der Speicherung wird zunächst durch 
+        :func:`~tatooine_data.datapoint.DataPoint.create_json_for_influxDB` ein JSON Objekt erzeugt und dann Kanal für Kanal in eine Liste von JSON Objekten überführt. Anschließend wird diese Liste an die InfluxDB gesendet.
 
         :param current_data_list: Liste mit den aktuellen Messwerten
         :type current_data_list: list[DataPoint]
@@ -105,17 +105,17 @@ class StoreDataToInflux:
         #Liste von JSON Dictonaries die in InfluxDB geschrieben wir
         json_list = []
         
-        #FÃ¼r jeden Kanal Ã¼berprÃ¼fen, ob er geschrieben werden muss
+        #Für jeden Kanal überprüfen, ob er geschrieben werden muss
         for chn in current_data_list:
                 
-            #Wenn der Wert sich erstmalig stark geÃ¤ndert hat
+            #Wenn der Wert sich erstmalig stark geändert hat
             if (chn.value_dev_abs > chn.thd_deviation_abs) and \
                 not(chn.storage_prelim_hysterese):
 
-                # das JSON des aktuellen Kanals inkl. vorletztem Wert anhÃ¤ngen 
+                # das JSON des aktuellen Kanals inkl. vorletztem Wert anhängen 
                 json_list  += chn.create_json_for_influxDB( \
                     self._MEASUREMENT_NAME,self._TAG_LOCATION, 2)
-                # den Counter fÃ¼r das Abspeichern zurÃ¼cksetzen
+                # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0  
                 # die Sprungerkennung abspeichern
                 chn.storage_prelim_hysterese = True
@@ -123,17 +123,17 @@ class StoreDataToInflux:
             elif (chn.storage_tick_counter >= chn.storage_tick_max) or \
                 (chn.value_dev_abs > chn.thd_deviation_abs):
                 
-                # das JSON des aktuellen Kanals anhÃ¤ngen        
+                # das JSON des aktuellen Kanals anhängen        
                 json_list  += chn.create_json_for_influxDB( \
                     self._MEASUREMENT_NAME, self._TAG_LOCATION, 1)
-                # den Counter fÃ¼r das Abspeichern zurÃ¼cksetzen
+                # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
                 
             else:
                 chn.storage_tick_counter += 1
             
             if (chn.value_dev_abs < chn.thd_deviation_abs):
-                # die Sprungerkennung zurÃ¼cksetzen
+                # die Sprungerkennung zurücksetzen
                 chn.storage_prelim_hysterese = False
         
         # Schreibe die Daten in die Datenbank

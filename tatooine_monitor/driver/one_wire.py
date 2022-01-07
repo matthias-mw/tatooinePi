@@ -1,30 +1,80 @@
 #!/usr/bin/env python3
 # coding: ISO-8859-1 
 
+# Modul zur Verarbeitung von Regular Expressions
 import re
-import time
+
+# Modul zur Bearbeitung der Zeitstempel
 import datetime
-import concurrent.futures
+
+# Module zur Bearbeitung von Files
 from os import listdir, path
 from os.path import isfile, join
 
-
-
 class OneWire:
-    '''
+    '''Schnittstellenklasse zur Auslesung von 1-Wire Sensoren
+    
+    Aktuelle stellt die Klasse alle Methoden zur Verf¸gung, um ¸ber den 1-Wire
+    Bus die DS18220 Sensoren auslesen zu kˆnnen. Dabei ist zu beachten, dass
+    diese Sensoren eine hohe Latenz besitzen und daher die Auslesung ¸ber
+    Multithreading erfolgen sollte.
+    
+    .. code-block:: python
+    
+        sensor.show_all_devices()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = [executor.submit(sensor.read_1w_sensor_ds18s20,i) for i in sensor.list_all_devices()]
+            for f in concurrent.futures.as_completed(results):
+                print(f.result())
+    
+    Dabei wird vorausgesetzt, dass zuvor mit raspi-config die 1Wire
+    Intergration aktiviert wurde und ein entsprechender GPIO definiert
+    wurde.
+    
+    .. note:: 
+        Aktuell wird damit nur der Sensor DS18S20 unterst¸tzt. Es werden zwar
+        alle 1-Wire Sensoren gefunden und aufgelistet, aber nur der DS18S20 kann gelesen werden.
+    
     
     '''
 
-    # Festlegen des Systempfades f√ºr die 1-Wire Sensoren
+    # Festlegen des Systempfades f¸r die 1-Wire Sensoren
     _path_to_1W_sensors = "/sys/bus/w1/devices"
+    '''Pfad zu dem 1-Wire Sensoren auf dem RaspberryPi'''
+    
     # Filename mit den Sensorwerten
-    _temp_sensor_1w_filename = "w1_slave"
+    _temp_sensor_1w_filename = "-"
+    '''Dateiname mit dem Messwert des DS18S20 Temperatursensors'''
 
-    def __init__(self):
-        self._temp_sensor_1w_filename = "w1_slave"
+    def __init__(self, path_to_1wire = "/sys/bus/w1/devices", 
+                 ds18s20_fname = "w1_slave"):
+        """Initialisierung der 1 Wire Treiber Klasse
+
+        :param path_to_1wire: Systempfades f¸r die 1-Wire Sensoren, defaults to "/sys/bus/w1/devices"
+        :type path_to_1wire: str, optional
+        :param ds18s20_fname: Filename mit den Sensorwerten des DS18s20, defaults to "w1_slave"
+        :type ds18s20_fname: str, optional
+        """
+        
+        # Name des Messfiles vom DS18S20
+        self._temp_sensor_1w_filename = ds18s20_fname
+        # Festlegen des Systempfades f¸r die 1-Wire Sensoren
+        self._path_to_1W_sensors = path_to_1wire
     
-    
-    def list_all_devices(self):
+        
+    def list_all_devices(self) -> list:
+        """Auflistung aller 1-Wire Sensoren die im System gefunden werden
+        
+        Die Funktion listet alle 1-Wire sensoren auf, die im Systemverzeichnis :mod:`~driver.one_wire.OneWire._path_to_1W_sensors` gefunden werden. 
+
+        .. note:: 
+            Die Funktion nutzt dazu Regularexpressions und untersucht, ob die Files in diesem Verzeichnis eine 1-Wire typischen Name besitzen. Der Filename entspricht den SensorIDs. (z.B. 28-0121131907b3, 
+            3a-0000003820a6 ... )
+        
+        
+        :return: Auflistung aller 1-Wire Sensoren
+        :rtype: list
+        """
 
         # Alle Files der 1Wire Sensoren extrahieren
         # typischer Aufbau des Filenamens (3a-0000003820a6)
@@ -33,7 +83,18 @@ class OneWire:
         
         return sensors    
 
-    def list_ds18s20_devices(self):
+    def list_ds18s20_devices(self) -> list:
+        """Auflistung aller DS18S20 Sensoren die ¸ber 1-Wire im System gefunden werden
+
+        Die Funktion entspricht der :mod:`~driver.one_wire.OneWire.list_all_devices`, beschr‰nkt sich aber auf die Ausgabe der DS18S20 Sensoren.
+        
+        .. note::
+            Die DS18S20 Sensoren beginnen in Ihrer ID immer mit der 28_
+        
+        
+        :return: Auflistung aller DS18S20 Sensoren
+        :rtype: list
+        """
 
         # Alle Files der 1Wire Sensoren extrahieren
         # typischer Aufbau des Filenamens (3a-0000003820a6)
@@ -42,16 +103,37 @@ class OneWire:
         
         return sensors  
 
-    def show_all_devices(self):
+    def show_all_devices(self) -> None:
+        """Ausgabe aller gefunden 1-Wire Sensoren in der Konsole
+        """
         
         # Ausgabe der Sensoren
         print("Folgende 1-Wire Sensoren wurden gefunden:")
         for i in self.list_all_devices():
             print(i)
+ 
 
+    def read_1w_sensor_ds18s20(self,id: str) -> list[str, float]:
+        """Auslesen eines spezifischen DS18S20 Sensors
+        
+        Die Methode gibt die aktuelle Temperatur des angew‰hlten Sensors
+        aus. Dazu wird das File  :mod:`~driver.one_wire.OneWire._temp_sensor_1w_filename` ausgelesen und anschlieﬂend der Wert berechnet.
+        
+        .. note::
+        
+            Beispiel eines w1_slave Files:
+            
+            63 01 4b 46 7f ff 0c 10 d1 : crc=d1 YES \n
+            63 01 4b 46 7f ff 0c 10 d1 t=22187
+        
+        Sollte das File nicht lesbar sein, so wird eine Exception ausgegeben.
         
 
-    def read_1w_sensor_ds18s20(self,id = str):
+        :param id: Die ID des auszulesenden DS18S20 Sensors
+        :type id: string
+        :return: eine Liste mit der SensorID und des dazugehˆrigen Messwertes
+        :rtype: list[str, float]
+        """
         
         value = 0.0
         path = join(self._path_to_1W_sensors,id,self._temp_sensor_1w_filename)
@@ -70,43 +152,15 @@ class OneWire:
                         value = str(float(m.group(2)) / 1000.0)            
                         
                         if value == 0.0:
+                            
+                            #ToDo: Logging Implementieren
                             print(f'{datetime.now()} ---> {id} hat aktuell den Wert: {value} GrdC')
                                                           
         # Fehlermeldung sollte 1-Wire Sensor nicht lesbar sein
         except(IOError):
+                #ToDo Exception richtig stellen
                 print (f'{datetime.now()} ---> Error reading {path}')
                 value = None
         
         return [id,float(value)]
 
-
-
-# start = time.perf_counter()
-
-# sensor = OneWire()
-
-# print(sensor)
-
-# sensor.show_all_devices()
-
-
-# with concurrent.futures.ThreadPoolExecutor() as executor:
-    
-#     results = [executor.submit(sensor.read_1w_sensor_ds18s20,i) for i in sensor.list_all_devices()]
-
-#     for f in concurrent.futures.as_completed(results):
-#         print(f.result())
-
-  
-
-# finish = time.perf_counter()
-
-
-# print(f'Finished in {round(finish-start,2)} s')
-
-# Bespiel f√ºr DS18S20 Sensor Filename
-# 28-0121131907b3
-
-# Beispiel aus dem w1_slave file
-# 63 01 4b 46 7f ff 0c 10 d1 : crc=d1 YES
-# 63 01 4b 46 7f ff 0c 10 d1 t=22187

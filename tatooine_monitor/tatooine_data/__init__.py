@@ -2,8 +2,8 @@
 # coding: ISO-8859-1 
 """Modul zur Gewinnung, Bearbeitung und Speicherung von Messdaten
 
-Mit diesem Modul werden alle FunktionalitÃ¤ten zur VerfÃ¼gung gestellt, die
-benÃ¶tigt werden, um Messdaten zu gewinnen, zu bearbeiten und anschlieÃŸend
+Mit diesem Modul werden alle Funktionalitäten zur Verfügung gestellt, die
+benötigt werden, um Messdaten zu gewinnen, zu bearbeiten und anschlieÃŸend
 zu speichern. 
 
 """
