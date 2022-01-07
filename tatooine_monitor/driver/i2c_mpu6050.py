@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# coding: ISO-8859-1 
+
 """
 This program handles the communication over I2C
 between a Raspberry Pi and a MPU-6050 Gyroscope / Accelerometer combo.

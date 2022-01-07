@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# coding: ISO-8859-1 
 
 # Module zur Bearbeitung der Zeitstempel
 from datetime import datetime

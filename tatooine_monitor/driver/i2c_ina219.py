@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# coding: ISO-8859-1 
+
 """Library for the INA219 current and power monitor from Texas Instruments.
 
 Supports the Raspberry Pi using the I2C bus.

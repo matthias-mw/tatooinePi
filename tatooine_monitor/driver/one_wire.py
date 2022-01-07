@@ -1,8 +1,9 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+# coding: ISO-8859-1 
 
 import re
 import time
+import datetime
 import concurrent.futures
 from os import listdir, path
 from os.path import isfile, join
@@ -68,11 +69,12 @@ class OneWire:
                         # Berechne das Ergebnis
                         value = str(float(m.group(2)) / 1000.0)            
                         
-                        # print(f'{id} hat aktuell den Wert: {value} GrdC')
-                        
+                        if value == 0.0:
+                            print(f'{datetime.now()} ---> {id} hat aktuell den Wert: {value} GrdC')
+                                                          
         # Fehlermeldung sollte 1-Wire Sensor nicht lesbar sein
         except(IOError):
-                print ("Error reading ", path)
+                print (f'{datetime.now()} ---> Error reading {path}')
                 value = None
         
         return [id,float(value)]

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# coding: ISO-8859-1 
 
 class ADS1115():
     """Die Klasse zur Ansteuerung des ADS1115

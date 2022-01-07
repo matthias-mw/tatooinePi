@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# coding: ISO-8859-1 
 """Modul zur Gewinnung, Bearbeitung und Speicherung von Messdaten
 
 Mit diesem Modul werden alle Funktionalitäten zur Verfügung gestellt, die

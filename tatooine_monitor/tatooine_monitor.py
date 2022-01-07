@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# coding: ISO-8859-1 
 
 __author__ = "Matthias Werner"
 __copyright__ = "Copyright 2021, TatooineMonitor Projekt"
@@ -95,11 +96,11 @@ if __name__ == '__main__':
             # Bestimmung der noch verbleibenden Schleifenzeit        
             delta = time.perf_counter() - start
             delay = (MAIN_LOOP_LENGHT_MS / 1000) - delta
-            
+
             if (delay < 0):
                 # Die ZEitschleife wurde überschritten
                 print("{0:s}: -> Oberrun by {1:0.3f}s Storage {2:0.3f}".format(str(datetime.now()), round(delta,3), round(s2-s1,3)) )
-            
+
             else:
                 # print(f'Loop finished in {round(delta,3)} s')
                 time.sleep(delay)
