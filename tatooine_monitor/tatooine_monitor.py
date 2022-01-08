@@ -72,7 +72,7 @@ if __name__ == '__main__':
             
             cnt_i2c +=1
             cnt_1wire +=1
-     
+
             # Bestimmung der Startzeit der Schleife
             start = time.perf_counter()
             
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             delay = (MAIN_LOOP_LENGHT_MS / 1000) - delta
 
             if (delay < 0):
-                # Die ZEitschleife wurde äberschritten
+                # Die ZEitschleife wurde überschritten
                 print("{0:s}: -> Oberrun by {1:0.3f}s Storage {2:0.3f}".format(str(datetime.now()), round(delta,3), round(s2-s1,3)) )
 
             else:

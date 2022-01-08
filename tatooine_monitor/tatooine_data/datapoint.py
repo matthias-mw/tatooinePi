@@ -120,7 +120,7 @@ class   DataPoint():
         #-----------------------------------------------------------------------
         # Nachbearbeitung (filtern) des aktuellen Messwertes
         #-----------------------------------------------------------------------
-        if len((self.value_history) >= self.filter_cnt) and \
+        if (len(self.value_history) >= self.filter_cnt) and \
             (self.filter_cnt > 1):
             # Berechnung des gleitenden Mittelwertes über lie letzten Messwerte
             self.value = (sum(self.value_history[(len(self.value_history) - \
@@ -235,9 +235,9 @@ class   DataPoint():
                     "fields": {
                         self.name:      float(penultimate_val),
                         self.name + "_raw":    float(penultimate_val),
-                        self.name + "_dev_abs":    penultimate_dev_abs,
-                        self.name + "_dev_perc":   penultimate_dev_perc,
-                        self.name + "_value_mean": self.value_mean
+                        self.name + "_dev_abs":    float(penultimate_dev_abs),
+                        self.name + "_dev_perc":   float(penultimate_dev_perc),
+                        self.name + "_value_mean": float(self.value_mean)
                     }
                 }
             ]
@@ -254,9 +254,9 @@ class   DataPoint():
               "fields": {
                   self.name:      float(self.value),
                   self.name + "_raw":       float(self.value_raw),
-                  self.name + "_dev_abs":    self.value_dev_abs,
-                  self.name + "_dev_perc":   self.value_dev_perc,
-                  self.name + "_value_mean": self.value_mean
+                  self.name + "_dev_abs":    float(self.value_dev_abs),
+                  self.name + "_dev_perc":   float(self.value_dev_perc),
+                  self.name + "_value_mean": float(self.value_mean)
               }
           }
         ]

@@ -26,7 +26,7 @@ class StoreDataToInflux:
     _db_name = "database"
     """Name der Datenbank die verwendet werden soll"""
     
-    _MEASUREMENT_NAME = 'Signal3'
+    _MEASUREMENT_NAME = 'Signal5'
     """Name des Mesurements in der InfluxDB"""
     _TAG_LOCATION = 'tatooine'
     """Wert des Tags 'location' in der InfluxDB"""
@@ -135,9 +135,11 @@ class StoreDataToInflux:
             if (chn.value_dev_abs < chn.thd_deviation_abs):
                 # die Sprungerkennung zurücksetzen
                 chn.storage_prelim_hysterese = False
-        
-        # Schreibe die Daten in die Datenbank
-        self.client.write_points(json_list)    
+
+        if len(json_list) > 0:      
+            # Schreibe die Daten in die Datenbank
+            self.client.write_points(json_list) 
+
         
         
         

@@ -204,7 +204,7 @@ class AquireData:
         self.measure_power()
         self.measure_adc()
         self.measure_gyro()
-        
+
 
     def aquire_data_1wire(self) -> None:
         """Zentrale Methode zum auslesen aller 1 Wire Sensoren
