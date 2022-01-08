@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding: ISO-8859-1 
+# -*- coding: utf-8 -*-
 
 # Module zur Bearbeitung der Zeitstempel
 from datetime import datetime
@@ -120,7 +120,8 @@ class   DataPoint():
         #-----------------------------------------------------------------------
         # Nachbearbeitung (filtern) des aktuellen Messwertes
         #-----------------------------------------------------------------------
-        if len(self.value_history) >= self.filter_cnt:
+        if len((self.value_history) >= self.filter_cnt) and \
+            (self.filter_cnt > 1):
             # Berechnung des gleitenden Mittelwertes über lie letzten Messwerte
             self.value = (sum(self.value_history[(len(self.value_history) - \
                          self.filter_cnt + 1):]) + self.value_raw) / self.filter_cnt

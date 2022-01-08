@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding: ISO-8859-1 
+# -*- coding: utf-8 -*-
 
 __author__ = "Matthias Werner"
 __copyright__ = "Copyright 2021, TatooineMonitor Projekt"
@@ -46,7 +46,7 @@ bus = smbus.SMBus(1)
 
 if __name__ == '__main__':
 
-    # Konfiguration der Messkan‰le
+    # Konfiguration der Messkan√§le
     helper.config_channels()
     
     # Initialisierunfg der Verbindung zur InfluxDB
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             delay = (MAIN_LOOP_LENGHT_MS / 1000) - delta
 
             if (delay < 0):
-                # Die ZEitschleife wurde ¸berschritten
+                # Die ZEitschleife wurde √§berschritten
                 print("{0:s}: -> Oberrun by {1:0.3f}s Storage {2:0.3f}".format(str(datetime.now()), round(delta,3), round(s2-s1,3)) )
 
             else:

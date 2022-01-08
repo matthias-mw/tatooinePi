@@ -1,7 +1,7 @@
-Python Treiber für die Messmodule
+Python Treiber fÃ¼r die Messmodule
 =================================
 
-In diesem Package sind alle Treiber integriert, welche zur Gewinnung von Messdaten des TatooineMonitors benötigt werden. Es gibt einen Treiber pro verwendetem Chip. Es können sich mehrere Chips den gleichen Datenbus teilen. 
+In diesem Package sind alle Treiber integriert, welche zur Gewinnung von Messdaten des TatooineMonitors benÃ¶tigt werden. Es gibt einen Treiber pro verwendetem Chip. Es kÃ¶nnen sich mehrere Chips den gleichen Datenbus teilen. 
 
 
 Module angeschlossen am i2c Bus

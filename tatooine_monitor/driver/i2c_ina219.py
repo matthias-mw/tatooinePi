@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding: ISO-8859-1 
+# -*- coding: utf-8 -*-
 
 """Library for the INA219 current and power monitor from Texas Instruments.
 

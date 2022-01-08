@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding: ISO-8859-1 
+# -*- coding: utf-8 -*-
 
 # Modul zur Verarbeitung von Regular Expressions
 import re
@@ -11,12 +11,30 @@ import datetime
 from os import listdir, path
 from os.path import isfile, join
 
+# Import Logging Modul
+import logging
+
+
+# ============================================
+# Konfiguration des Logging
+# ============================================
+oneWire_logger = logging.getLogger(__name__)
+oneWire_logger.setLevel(logging.INFO)
+
+# Format
+formatter = logging.Formatter('%(levelname)s %(asctime)s %(name)s %(message)s ')
+
+# Ausgabe
+file_handler = logging.FileHandler('monitor.log')
+file_handler.setFormatter(formatter)
+oneWire_logger.addHandler(file_handler)
+
 class OneWire:
-    '''Schnittstellenklasse zur Auslesung von 1-Wire Sensoren
+    """Schnittstellenklasse zur Auslesung von 1-Wire Sensoren
     
-    Aktuelle stellt die Klasse alle Methoden zur Verfügung, um über den 1-Wire
-    Bus die DS18220 Sensoren auslesen zu können. Dabei ist zu beachten, dass
-    diese Sensoren eine hohe Latenz besitzen und daher die Auslesung über
+    Aktuelle stellt die Klasse alle Methoden zur VerfÃ¼gung, um Ã¼ber den 1-Wire
+    Bus die DS18220 Sensoren auslesen zu kÃ¶nnen. Dabei ist zu beachten, dass
+    diese Sensoren eine hohe Latenz besitzen und daher die Auslesung Ã¼ber
     Multithreading erfolgen sollte.
     
     .. code-block:: python
@@ -32,25 +50,23 @@ class OneWire:
     wurde.
     
     .. note:: 
-        Aktuell wird damit nur der Sensor DS18S20 unterstützt. Es werden zwar
+        Aktuell wird damit nur der Sensor DS18S20 unterstÃ¼tzt. Es werden zwar
         alle 1-Wire Sensoren gefunden und aufgelistet, aber nur der DS18S20 kann gelesen werden.
+    """
     
-    
-    '''
-
-    # Festlegen des Systempfades für die 1-Wire Sensoren
+    # Festlegen des Systempfades fÃ¼r die 1-Wire Sensoren
     _path_to_1W_sensors = "/sys/bus/w1/devices"
-    '''Pfad zu dem 1-Wire Sensoren auf dem RaspberryPi'''
+    """Pfad zu dem 1-Wire Sensoren auf dem RaspberryPi"""
     
     # Filename mit den Sensorwerten
     _temp_sensor_1w_filename = "-"
-    '''Dateiname mit dem Messwert des DS18S20 Temperatursensors'''
+    """Dateiname mit dem Messwert des DS18S20 Temperatursensors"""
 
     def __init__(self, path_to_1wire = "/sys/bus/w1/devices", 
                  ds18s20_fname = "w1_slave"):
         """Initialisierung der 1 Wire Treiber Klasse
 
-        :param path_to_1wire: Systempfades für die 1-Wire Sensoren, defaults to "/sys/bus/w1/devices"
+        :param path_to_1wire: Systempfades fÃ¼r die 1-Wire Sensoren, defaults to "/sys/bus/w1/devices"
         :type path_to_1wire: str, optional
         :param ds18s20_fname: Filename mit den Sensorwerten des DS18s20, defaults to "w1_slave"
         :type ds18s20_fname: str, optional
@@ -58,9 +74,12 @@ class OneWire:
         
         # Name des Messfiles vom DS18S20
         self._temp_sensor_1w_filename = ds18s20_fname
-        # Festlegen des Systempfades für die 1-Wire Sensoren
+        # Festlegen des Systempfades fÃ¼r die 1-Wire Sensoren
         self._path_to_1W_sensors = path_to_1wire
     
+        # Logging Info
+        oneWire_logger.info(f'Folgende 1-wire Sensoren wurden unter {path_to_1wire} gefunden: {self.list_all_devices()}')
+        
         
     def list_all_devices(self) -> list:
         """Auflistung aller 1-Wire Sensoren die im System gefunden werden
@@ -84,14 +103,13 @@ class OneWire:
         return sensors    
 
     def list_ds18s20_devices(self) -> list:
-        """Auflistung aller DS18S20 Sensoren die über 1-Wire im System gefunden werden
+        """Auflistung aller DS18S20 Sensoren die Ã¼ber 1-Wire im System gefunden werden
 
-        Die Funktion entspricht der :mod:`~driver.one_wire.OneWire.list_all_devices`, beschränkt sich aber auf die Ausgabe der DS18S20 Sensoren.
+        Die Funktion entspricht der :mod:`~driver.one_wire.OneWire.list_all_devices`, beschrÃ¤nkt sich aber auf die Ausgabe der DS18S20 Sensoren.
         
         .. note::
-            Die DS18S20 Sensoren beginnen in Ihrer ID immer mit der 28_
-        
-        
+            Die DS18S20 Sensoren beginnen in Ihrer ID immer mit der 28
+                
         :return: Auflistung aller DS18S20 Sensoren
         :rtype: list
         """
@@ -116,8 +134,8 @@ class OneWire:
     def read_1w_sensor_ds18s20(self,id: str) -> list[str, float]:
         """Auslesen eines spezifischen DS18S20 Sensors
         
-        Die Methode gibt die aktuelle Temperatur des angewählten Sensors
-        aus. Dazu wird das File  :mod:`~driver.one_wire.OneWire._temp_sensor_1w_filename` ausgelesen und anschließend der Wert berechnet.
+        Die Methode gibt die aktuelle Temperatur des angewÃ¤hlten Sensors
+        aus. Dazu wird das File  :mod:`~driver.one_wire.OneWire._temp_sensor_1w_filename` ausgelesen und anschlieÃŸend der Wert berechnet.
         
         .. note::
         
@@ -131,7 +149,7 @@ class OneWire:
 
         :param id: Die ID des auszulesenden DS18S20 Sensors
         :type id: string
-        :return: eine Liste mit der SensorID und des dazugehörigen Messwertes
+        :return: eine Liste mit der SensorID und des dazugehÃ¶rigen Messwertes
         :rtype: list[str, float]
         """
         
@@ -142,25 +160,32 @@ class OneWire:
         try:
             with open(path,'r') as sensorfile:
                 # Wenn die Auslesung korrekt erfolgt ist
-                line = sensorfile.readline()
-                if re.match(r"([0-9a-f]{2} ){9}: crc=[0-9a-f]{2} YES", line):
+                line1 = sensorfile.readline()
+                if re.match(r"([0-9a-f]{2} ){9}: crc=[0-9a-f]{2} YES", line1):
                     # Extrahiere den Messwert
-                    line = sensorfile.readline()
-                    m = re.match(r"([0-9a-f]{2} ){9}t=([+-]?[0-9]+)", line)
+                    line2 = sensorfile.readline()
+                    m = re.match(r"([0-9a-f]{2} ){9}t=([+-]?[0-9]+)", line2)
                     if m:
                         # Berechne das Ergebnis
                         value = str(float(m.group(2)) / 1000.0)            
                         
+                        # Manchmal wir sporadisch eine 0 gelesen ????
                         if value == 0.0:
                             
                             #ToDo: Logging Implementieren
-                            print(f'{datetime.now()} ---> {id} hat aktuell den Wert: {value} GrdC')
+                            msg = f'Fehler bei Messung DS1820 mit ID: {id}\n'
+                            msg += f'Value = {value}\n{line1}\n{line2}'
+                            oneWire_logger.warning(msg)
                                                           
         # Fehlermeldung sollte 1-Wire Sensor nicht lesbar sein
         except(IOError):
                 #ToDo Exception richtig stellen
-                print (f'{datetime.now()} ---> Error reading {path}')
-                value = None
+                
+                # Logging Info
+                msg = f'DS1820 mit ID: {id} nicht auslesbar. File {path} konnte nicht gelesen werden'
+                oneWire_logger.warning(msg)
+                
+                value = 99
         
         return [id,float(value)]
 
