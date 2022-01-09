@@ -1,18 +1,43 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""Bibliothek zur Ansteuerung des ADS1115 
+
+Der ADS1115 ist ein Baustein von Texas Instruments zur Messung mehrerer Spannungen oder Spannungsdifferenzen, welcher über den i2c Bus ausgelesen werden kann. 
+*ADS111x Ultra-Small, Low-Power, I2C-Compatible, 860-SPS, 16-Bit ADCsWith Internal Reference, Oscillator, and Programmable Comparator*
+
+"""
+
 class ADS1115():
     """Die Klasse zur Ansteuerung des ADS1115
     
     In der Klasse werden alle Methoden und Attribute bereit gestellt, die
-    Benätigt werden einen ADS1115 anzusteuern, zu konfigurieren und 
-    auszulesen.
+    benötigt werden einen ADS1115 anzusteuern, zu konfigurieren und 
+    auszulesen. Die übergebenen Parameter dienen der Basiskonfiguration für die Auslesung des jeweiligen Kanals
+    
+    Im Rahmen der Initialisierung wird der Sensor durch mit Standardeinstellungen konfiguriert und die Messung erfolgt anschließend mit der Methode **getVoltage()**.
+    
+    .. code-block:: python
 
-    Returns:
-        object: Das Objekt repräsentiert einen AD Kanal des ADS1115
+         # Objekte für die Spannungsmessung anlegen
+        Adc1 = ADS1115(bus,ADS1115.MUX_AIN0_GND,4.096)
+        v = Adc1.getVoltage()
+    
+
+
+    :param bus: obj übergeben von der Funktion smbus
+    :type bus: object
+    :param mux: Einstellung fär den Multiplexer im ADS1115
+    :type mux: int
+    :param scale: Skalierung des AD-Wandlers in Volt
+    :type scale: float
+    :param address: i2c Adresse des Chip, defaults to 0x48
+    :type address: byte [optional]
+    
+    :return:    Das Objekt repräsentiert einen AD Kanal des ADS1115
+    :rtype:     object
+        
     """
-    #I2C Adresse des ADS1115 (Ground an ADDR-PIN)
-    ADDRESS = 0x48  
 
     #=================================================================
     # Register Selector
@@ -120,31 +145,36 @@ class ADS1115():
     #=======================================================================
     
     #Adresse des I2C Devices 
-    i2c_addr    = ADDRESS
+    i2c_addr    = 0x48
     #Gemessene Spannung 
     __voltage     = 0
     #16bit Wert des AD Wandlers
     __raw_adc     = 0
-    #Config fär den Multiplexer
+    #Config für den Multiplexer
     mux         = MUX_AIN0_GND
-    #MSB fär das Configregister
+    #MSB für das Configregister
     configMSB   = OS_BEGIN_SINGLE_CONV | MUX_AIN0_GND | PGA_4V096 | MODE_SINGLE_SHOT_CONV
-    #LSB fär das Configregister
+    #LSB für das Configregister
     configLSB   = DR_128SPS | COMP_MODE_TRADITIONAL | COMP_DISABLE
-    
 
-    def __init__(self,bus,mux,scale):
+        
+    def __init__(self,bus,mux,scale, address = 0x48):
         """Initialisierung des AnalogChannel vom ADS1115
 
-        Args:
-            bus (obj): obj äbergeben von der der Funktion smbus
-            mux (int): Einstellung fär den Multiplexer im ADS1115
-            scale ([type]): Skalierung des AD-Wandlers in Volt
+        :param bus: obj übergeben von der Funktion smbus
+        :type bus: object
+        :param mux: Einstellung fär den Multiplexer im ADS1115
+        :type mux: int
+        :param scale: Skalierung des AD-Wandlers in Volt
+        :type scale: float
+        :param address: i2c Adresse des Chip, defaults to 0x48
+        :type address: byte [optional]
         """
         
         self.bus = bus
         self.mux = mux
         self.scale = scale
+        self.i2c_addr = address
         # Übernahme der Mux Einstellung
         self.configMSB = self.configMSB & 0b10001111
         self.configMSB = self.configMSB | mux
@@ -152,48 +182,54 @@ class ADS1115():
         #Config Schreiben
         self.write_config()
         
-    def read_conversation(self):
+    def read_conversation(self) -> int:
         """Auslesen des Conversation Registers des ADS1115
         
         Mit der Funktion wird eine Liste von 2 Byte [MSB,LSB] ausgelesen, welche
         den 16Bit Inhalt des Conversation Registers enthält.
         
+        :return: Inhalt des Conversation Registers
+        :rtype: int
         """
         #Auslesen des Conversation Registers im ADS1115
         return self.bus.read_i2c_block_data(self.i2c_addr, self.CMD_SEL_REG_CONV, 2)
      
-    def set_config(self, msb,lsb):
-        """Erstellen der Config Bytes fär das Register im ADS1115
+    def set_config(self, msb,lsb) -> None:
+        """Erstellen der Config Bytes für das Register im ADS1115
 
-        Args:
-            msb (byte): Most Significant Byte
-            lsb (byte): Least Significant Byte
+        :param msb: Most Significant Byte
+        :type msb:  byte
+        :param lsb: Least Significant Byte
+        :type lsb:  byte
         """
-        
+     
         #Abspeichern des Config
         self.configMSB = msb
         self.configLSB = lsb
         
-    def write_config(self):
+    def write_config(self) -> None:
         """Schreiben des Configregisters vom ADS1115
         """
          #Schreiben der Konfiguration in des ads1115
         self.bus.write_i2c_block_data(self.i2c_addr, self.CMD_SEL_REG_CONFIG, [self.configMSB,self.configLSB])       
         
-    def read_config(self):
+    def read_config(self) -> int:
         """Lesen des Configregisters vom ADS1115
+        
+        :return: Inhalt des Config Registers
+        :rtype: int
         """
         #Auslesen der Konfiguration in des ads1115
         return self.bus.read_i2c_block_data(self.i2c_addr, self.CMD_SEL_REG_CONFIG, 2)
     
-    def print_config(self):
-        """Debuggen der aktuellen Connfig dieses AD Objektes
+    def print_config(self) -> None:
+        """Ausgabe der aktuellen Connfig dieses AD Objektes in der Konsole
         """
         print ("MSB:" + "{0:010b}".format(self.configMSB) + " --- LSB:" + "{0:010b}".format(self.configLSB))
         
     
-    def __measure_analogIn(self):
-        """ Ausfähren einer SingleShot Messung am entsprechendem AD-Eingang
+    def __measure_analogIn(self) -> None:
+        """ Ausführen einer SingleShot Messung am entsprechendem AD-Eingang
         
         Messung der Spannung am AD-Wandler mittels Single Shot. Dazu wird
         zuerst das Config register geschrieben und damit Single Shot getriggert.
@@ -203,6 +239,7 @@ class ADS1115():
         Returns:
             [float]: Gemessen Spannung am AD-Wandler
         """
+        
         #Schreiben der Konfiguration in des ads1114
         self.write_config()
 
@@ -232,15 +269,15 @@ class ADS1115():
     def getVoltage(self):
         """Ausgabe der Spannung am konfiguriertem Eingang
 
-        Die Funktion läst eine Messung aus und äbergibt dann den fertig 
-        umgerechneten Wert der Spannung in Volt. Der Eingang wurde äber 
+        Die Funktion lässt eine Messung aus und übergibt dann den fertig 
+        umgerechneten Wert der Spannung in Volt. Der Eingang wurde über 
         die MUX Stellung bei der Config gewählt.
 
         :return:    Spannung[V]
         :rtype:     float
         """        
         
-        #Messen der Analogen Spannunf am ADS1115
+        #Messen der Analogen Spannung am ADS1115
         self.__measure_analogIn()
         
         return self.__voltage
