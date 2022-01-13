@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Library for the INA219 current and power monitor from Texas Instruments.
+"""Modul zur Ansteuerung eines INA219 Sensors
 
-Supports the Raspberry Pi using the I2C bus.
+Der INA219 Sensor ist ein Baustein von Texas Instruments, welche Strom, Spannung uns Leistungsaufnahme messen kann. Ausgelesen wird der Sensor über die i2c Schnittstelle. *INA219 Zero-Drift, Bidirectional Current/Power Monitor With I2C Interface*
+
+
 """
 import logging
 import time
