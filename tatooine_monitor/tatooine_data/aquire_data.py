@@ -7,6 +7,9 @@ from datetime import datetime
 # Modul zum Multithreading
 import concurrent.futures
 
+# Import Logging Modul
+import logging
+
 # Klasse für die Abspeicherung der Datenpunkte
 from .datapoint import DataPoint
 
@@ -73,8 +76,14 @@ class AquireData:
             int(x['Filter']),int(x['TickMax']), int(x['TickFast']), \
             float(x['Threshold_Abs']), float(x['Threshold_Perc'])) for x in CHANNEL_CONFIG_LIST]
 
+        # ============================================
+        # Konfiguration des Logging
+        # ============================================
+        self.logger = logging.getLogger(__name__)
+        #self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.NullHandler())
    
-    def _store_data(self, data_point, value=0.0, 
+    def _store_data(self, data_point, value, 
                     time = datetime.now()):
         """Abspeichern eines Wertes in einen Datenpunkt
 
@@ -188,8 +197,15 @@ class AquireData:
                 # aktuellen Werte
                 for x in self.data_last_measured:        
                     if x.id == f.result()[0]:
-                        self._store_data(x,float(f.result()[1]),isoTime)
-
+                        
+                        # Check ob das Auslesen erfolgreich war
+                        if f.result()[1]:
+                            # Abspeichern des Wertes
+                            self._store_data(x,float(f.result()[1]),isoTime)
+                        else:
+                            #ToDo
+                            # Fehler in Logging eintragen
+                            self.logger.warning(f'Keine Speicherung des Wertes: -> {f.result()[1]}')
 
     def aquire_data_i2c(self) -> None:
         """Zentrale Methode zum Messen aller i2c Sensoren

@@ -6,6 +6,8 @@ from influxdb import InfluxDBClient
 # Klasse für die Abspeicherung der Datenpinkte
 from .datapoint import DataPoint
 
+# Import Logging Modul
+import logging
 
 class StoreDataToInflux:
     """Klasse zur Abspeicherung der Messdaten in einer InfluxDB
@@ -67,6 +69,13 @@ class StoreDataToInflux:
         self.client = InfluxDBClient(self._db_host, self._db_port,
                                       self._db_user, self._db_password, 
                                       self._db_name)   
+        
+        # ============================================
+        # Konfiguration des Logging
+        # ============================================
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(logging.NullHandler())
     
     def check_db_connection(self):
         """Checken der Connection zur Datenbank
@@ -118,7 +127,12 @@ class StoreDataToInflux:
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0  
                 # die Sprungerkennung abspeichern
+                self.logger.warning(f"Sprung erkannt auf {chn.name} -> Hysterese: {chn.storage_prelim_hysterese}")
                 chn.storage_prelim_hysterese = True
+                self.logger.warning(f"Hysterese: {chn.storage_prelim_hysterese}")
+                self.logger.warning(json_list)
+                self.logger.warning(chn.value_history)
+                chn.act_val_stored_to_db = True
 
             elif (chn.storage_tick_counter >= chn.storage_tick_max) or \
                 (chn.value_dev_abs > chn.thd_deviation_abs):
@@ -128,11 +142,12 @@ class StoreDataToInflux:
                     self._MEASUREMENT_NAME, self._TAG_LOCATION, 1)
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
+                chn.act_val_stored_to_db = True
                 
             else:
                 chn.storage_tick_counter += 1
             
-            if (chn.value_dev_abs < chn.thd_deviation_abs):
+            if (chn.storage_prelim_hysterese and (chn.value_dev_abs < chn.thd_deviation_abs)):
                 # die Sprungerkennung zurücksetzen
                 chn.storage_prelim_hysterese = False
 

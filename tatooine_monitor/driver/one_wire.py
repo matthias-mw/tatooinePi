@@ -14,21 +14,6 @@ from os.path import isfile, join
 # Import Logging Modul
 import logging
 
-
-# ============================================
-# Konfiguration des Logging
-# ============================================
-oneWire_logger = logging.getLogger(__name__)
-oneWire_logger.setLevel(logging.INFO)
-
-# Format
-formatter = logging.Formatter('%(levelname)s %(asctime)s %(name)s %(message)s ')
-
-# Ausgabe
-file_handler = logging.FileHandler('monitor.log')
-file_handler.setFormatter(formatter)
-oneWire_logger.addHandler(file_handler)
-
 class OneWire:
     """Schnittstellenklasse zur Auslesung von 1-Wire Sensoren
     
@@ -72,13 +57,20 @@ class OneWire:
         :type ds18s20_fname: str, optional
         """
         
+        # ============================================
+        # Konfiguration des Logging
+        # ============================================
+        self.logger = logging.getLogger(__name__)
+        #self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.NullHandler())
+        
         # Name des Messfiles vom DS18S20
         self._temp_sensor_1w_filename = ds18s20_fname
         # Festlegen des Systempfades für die 1-Wire Sensoren
         self._path_to_1W_sensors = path_to_1wire
     
         # Logging Info
-        oneWire_logger.info(f'Folgende 1-wire Sensoren wurden unter {path_to_1wire} gefunden: {self.list_all_devices()}')
+        self.logger.info(f'Folgende 1-wire Sensoren wurden unter {path_to_1wire} gefunden: \n{self.list_all_devices()}')
         
         
     def list_all_devices(self) -> list:
@@ -153,7 +145,7 @@ class OneWire:
         :rtype: list[str, float]
         """
         
-        value = 0.0
+        value = None
         path = join(self._path_to_1W_sensors,id,self._temp_sensor_1w_filename)
         
         # Versuchen den Sensor auszulesen
@@ -168,24 +160,26 @@ class OneWire:
                     if m:
                         # Berechne das Ergebnis
                         value = str(float(m.group(2)) / 1000.0)            
-                        
-                        # Manchmal wir sporadisch eine 0 gelesen ????
-                        if value == 0.0:
-                            
-                            #ToDo: Logging Implementieren
-                            msg = f'Fehler bei Messung DS1820 mit ID: {id}\n'
-                            msg += f'Value = {value}\n{line1}\n{line2}'
-                            oneWire_logger.warning(msg)
                                                           
         # Fehlermeldung sollte 1-Wire Sensor nicht lesbar sein
-        except(IOError):
-                #ToDo Exception richtig stellen
+        except(OSError):
                 
-                # Logging Info
-                msg = f'DS1820 mit ID: {id} nicht auslesbar. File {path} konnte nicht gelesen werden'
-                oneWire_logger.warning(msg)
-                
-                value = 99
+            # Logging Info
+            msg = f'DS1820 mit ID: {id} nicht auslesbar. File {path} konnte nicht gelesen werden'
+            self.logger.warning(msg)
+            
+            value = None
+            
+        except Exception as e:
+            
+            # Logging Info
+            self.logger.exception(e)
+            
+            value = None
+                        
+        if value == None:                             
+            # Ausgabe eines Info das Messung fehlgeschlagen
+            self.logger.warning('measure_1wire_ds18s20 hat für Kanal %s keinen Wert auslesen können.',id)
         
-        return [id,float(value)]
+        return [id,value]
 

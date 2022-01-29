@@ -4,10 +4,13 @@
 # Module zur Bearbeitung der Zeitstempel
 from datetime import datetime
 from pytz import timezone
+
 # Modul für Datenklassen
 from dataclasses import dataclass
 from dataclasses import field
 
+# Import Logging Modul
+import logging
 
 # Festlegen der Zeitzone für die Aufnahme der Messwerte und deren Zeitstempel
 tz_berlin = timezone('Europe/Berlin')
@@ -76,7 +79,10 @@ class   DataPoint():
     """Ticker der in jeder ZEitschleife hochgezählt und erst bei Speichern resetiert wird"""
     
     storage_prelim_hysterese: bool = True
-    """Bei einer großen Abweichung wird auch der vorangegangene Wert mit abgespeichert, um das sprungevent Zeitlich auflösen zu können. Dies erfolgt aber nur einmalig zu Beginn, dazu wird dieses Bit dan auf True gesetzt und erst nach der nächsten Unterschreitung der Sprungerkennung resettiert"""
+    """Bei einer großen Abweichung wird auch der vorangegangene Wert mit abgespeichert, um das sprungevent Zeitlich auflösen zu können. Dies erfolgt aber nur einmalig zu Beginn, dazu wird dieses Bit dan auf True gesetzt und erst nach der nächsten Unterschreitung der Sprungerkennung resetiert"""
+    
+    act_val_stored_to_db: bool = False
+    """Mit diesem Flag wird gekennzeichnet, dass der aktuell vorhandene Wert schon in der InfluxDB abgelegt wurde. So werden mehrfache unbenötigte Schreibzugriffe unterbunden."""
     
     history_length: int = 10
     """Anzahl der Werte die in der Historie gespeichert werden"""
@@ -86,6 +92,13 @@ class   DataPoint():
     
     value_history: list[float] = field(default_factory=list)
     """Historie am Messwerten mit der Länge :mod:`~tatooine_data.aquire_data.AquireData._MAX_DATA_POINTS_HISTORY` """    
+    
+    # ============================================
+    # Konfiguration des Logging
+    # ============================================
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.NullHandler())
     
     
     def update_value(self, new_value = float , new_timestamp = datetime):
@@ -120,6 +133,7 @@ class   DataPoint():
         #-----------------------------------------------------------------------
         # Nachbearbeitung (filtern) des aktuellen Messwertes
         #-----------------------------------------------------------------------
+        self.value_raw = new_value
         if (len(self.value_history) >= self.filter_cnt) and \
             (self.filter_cnt > 1):
             # Berechnung des gleitenden Mittelwertes über lie letzten Messwerte
@@ -135,7 +149,6 @@ class   DataPoint():
         # Updaten der Werte und Historie
         #-----------------------------------------------------------------------
         self.value_history.append(self.value)
-        self.value_raw = new_value
         self.timestamp_history.append(new_timestamp)
         self.timestamp = new_timestamp
 
@@ -161,6 +174,10 @@ class   DataPoint():
             self.value_mean = self.value
             self.value_dev_abs = float(0)
             self.value_dev_perc = float(0)
+            
+        # Vermerken, das ein neuer Wert vorliegt    
+        self.act_val_stored_to_db = False
+        
         
     def print_data_line(self):
         """ Print Funktion zur Darstellung des Messwertes und der Statistik in
@@ -241,6 +258,8 @@ class   DataPoint():
                     }
                 }
             ]
+            
+            self.logger.debug(f"Doppelabspeicherung von {self.name}")
        
         # Erzeuge JSON Datenstruktur passend zu InfluxDB für den aktuellen 
         # Messwert
@@ -260,5 +279,7 @@ class   DataPoint():
               }
           }
         ]
+        
+        
         return json_data
 

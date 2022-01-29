@@ -27,10 +27,11 @@ from tatooine_data import helper
 # Konfiguration 
 #=========================================================================
 
+# Länge der Hauptschleife
 MAIN_LOOP_LENGHT_MS = 250
-
+# Anzahl Schleifendurchgänge bis I2C gemessen wird
 N_LOOPS_AQUIRE_I2C = 1
-
+# Anzahl Schleifendurchgänge bis 1-Wire gemessen wird
 N_LOOPS_AQUIRE_1WIRE = 10
 
 #Zugangsdaten INFLUX_DB auf gleichem Raspberry
@@ -40,12 +41,19 @@ INFLUX_ADMIN = "admin"
 INFLUX_PASSWORT = "tatooinedb"
 INFLUX_DB_NAME = "sensors"
 
+# Logging
+TATOOINE_LOG_FILE = "monitor.log"
+TATOOINE_LOG_LEVEL = logging.INFO
 
 # Get I2C bus
 bus = smbus.SMBus(1)
 
-if __name__ == '__main__':
 
+#=========================================================================
+# Main Program 
+#=========================================================================
+def main():
+    
     # Konfiguration der Messkanäle
     helper.config_channels()
     
@@ -61,7 +69,6 @@ if __name__ == '__main__':
 
     cnt_i2c = 0
     cnt_1wire = 0
-
 
     # We can use a with statement to ensure threads are cleaned up promptly
     with concurrent.futures.ThreadPoolExecutor(max_workers=5555) as executor:
@@ -88,6 +95,7 @@ if __name__ == '__main__':
                 future_1w = executor.submit(data_handle.aquire_data_1wire)
                 cnt_1wire =0
 
+
             s1 = time.perf_counter()
             # Speichern der Messdaten
             inflDB.store_data(data_handle.data_last_measured)
@@ -98,8 +106,9 @@ if __name__ == '__main__':
             delay = (MAIN_LOOP_LENGHT_MS / 1000) - delta
 
             if (delay < 0):
-                # Die ZEitschleife wurde überschritten
-                print("{0:s}: -> Oberrun by {1:0.3f}s Storage {2:0.3f}".format(str(datetime.now()), round(delta,3), round(s2-s1,3)) )
+                # Die Zeitschleife wurde überschritten
+                msg = "Oberrun by {0:0.3f} Sekunden".format(round(delta,3))
+                logger.debug(msg)
 
             else:
                 # print(f'Loop finished in {round(delta,3)} s')
@@ -107,5 +116,32 @@ if __name__ == '__main__':
                 
             finish = time.perf_counter()    
             #print(f'Loop finished in {round(finish-start,3)} s')
+    
+
+
+
+#=========================================================================
+# Starten des Hauptprogramms
+#=========================================================================
+if __name__ == '__main__':
+
+
+    # Konfiguration des Loggings
+    logger = logging.getLogger()
+    logger.setLevel(TATOOINE_LOG_LEVEL)
+
+    # Logging - Format
+    formatter = logging.Formatter('%(levelname)s %(asctime)s %(name)s %(message)s ')
+
+    # Logging Ausgabeformat
+    file_handler = logging.FileHandler(TATOOINE_LOG_FILE,"w",encoding = "UTF-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    # Logging
+    logger.info('Python-Script für den TatooineMonitor neu gestartet')
+           
+    # Starten der Main Loop
+    main()
         
 
