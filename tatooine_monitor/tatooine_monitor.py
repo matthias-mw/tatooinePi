@@ -71,7 +71,10 @@ def main(show = FALSE):
 
     # Test der Verbindung zu InfluxDB
     inflDB.check_db_connection()
+<<<<<<< HEAD
     time.sleep(8)
+=======
+>>>>>>> 9cf333e (Erstimplementierung von Comandline Optionen)
 
     cnt_i2c = 0
     cnt_1wire = 0
@@ -118,7 +121,11 @@ def main(show = FALSE):
                 time.sleep(delay)
             
             #Ausgabe der aktuellen Daten über Stdout
+<<<<<<< HEAD
             if(show):
+=======
+            if(show == TRUE):
+>>>>>>> 9cf333e (Erstimplementierung von Comandline Optionen)
                 print(data_handle.show_current_data())
             
             #finish = time.perf_counter()    
@@ -154,6 +161,7 @@ if __name__ == '__main__':
     
     # Ausgabe der übergebenen Argumente
     if args.version:
+<<<<<<< HEAD
             print ("Tatooine Monitor Version " + __version__)
             sys.exit()
     
@@ -165,6 +173,19 @@ if __name__ == '__main__':
     if args.show:
             print ("Liveausgabe der Daten aktiviert...")
             showData = TRUE
+=======
+        print ("Tatooine Monitor Version " + __version__)
+        sys.exit()
+    
+    if args.debug:
+        print ("Debug Logging enabled...")
+        TATOOINE_LOG_LEVEL = logging.DEBUG
+            
+    showData = FALSE
+    if args.show:
+        print ("Liveausgabe der Daten aktiviert...")
+        showData = TRUE
+>>>>>>> 9cf333e (Erstimplementierung von Comandline Optionen)
 
 
     # Konfiguration des Loggings
