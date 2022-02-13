@@ -9,7 +9,7 @@ Copyright (c) 2015, 2016, 2017, 2021 Martijn (martijn@mrtijn.nl) and contributer
 https://github.com/m-rtijn/mpu6050
 """
 
-import smbus
+import smbus2
 
 class mpu6050:
 
@@ -68,7 +68,7 @@ class mpu6050:
 
     def __init__(self, address, bus=1):
         self.address = address
-        self.bus = smbus.SMBus(bus)
+        self.bus = smbus2.SMBus(bus)
         # Wake up the MPU-6050 since it starts in sleep mode
         self.bus.write_byte_data(self.address, self.PWR_MGMT_1, 0x00)
 

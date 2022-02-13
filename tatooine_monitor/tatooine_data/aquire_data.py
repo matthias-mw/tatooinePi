@@ -234,14 +234,17 @@ class AquireData:
         self.measure_1wire_ds18s20()
                      
 
-    # ToDo Ausgabefunktion für die Konsole erstellen
-    #-----------------------------------------------------------------------
-    # # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-    # #-----------------------------------------------------------------------
-    
-    # if print_out:
-    #     DataPoint.print_header()
-    #     for x in self.data_last_measured:
-    #         DataPoint.print_data_line(x)                
-    
+    def show_current_data(self) -> str:
+        #-----------------------------------------------------------------------
+        #Darstellen der aktuellen Werte
+        #-----------------------------------------------------------------------
+        
+        # Header
+        strOutput = ""
+        strOutput += DataPoint.print_header()
+        # Datenzeilen
+        for x in self.data_last_measured:
+            strOutput += '\n' + DataPoint.print_data_line(x)             
+        
+        return strOutput
  

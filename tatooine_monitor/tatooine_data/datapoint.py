@@ -179,24 +179,22 @@ class   DataPoint():
         self.act_val_stored_to_db = False
         
         
-    def print_data_line(self):
+    def print_data_line(self) -> str:
         """ Print Funktion zur Darstellung des Messwertes und der Statistik in
             einer Linie.
             
             Bsp: 
             GYRO_X                 4.44  dps               4.474  dps               0.039  dps            0.8702 %
         """        
-        print('{0:15s}  {1:10.2f}{5:>5s} {2:10.3f}{5:>5s} {3:10.3f}{5:>5s} {4:9.4f} %'.format(\
-            self.name, self.value, self.value_mean, self.value_dev_abs, self.value_dev_perc, self.unit))
+        return ('{0:15s}  {1:10.2f}{4:>5s} {2:10.3f}{4:>5s} {3:10.3f}{4:>5s}'.format(\
+            self.name, self.value, self.value_mean, self.value_dev_abs, self.unit))
     
-    def print_header():
+    def print_header() -> str:
         """ Print Funktion zur Darstellung eines Headers für die Zeilendarstellung 
             der Messwerte
         """        
         
-        print(chr(27) + "[2J")
-        print('Channel               Value            Mean                  Deviation  ')     
-        print('================================================================================')
+        return(chr(27) + "[2J" + ('Channel               Value            Mean            Deviation\n') + '====================================================================')
 
 
     def create_json_for_influxDB(self,measurement = 'signal', location = 'tag',\

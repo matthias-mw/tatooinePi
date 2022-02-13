@@ -12,7 +12,7 @@ __status__ = "Development"
 
 from datetime import datetime
 import logging
-import smbus
+import smbus2
 import time
 
 # Modul zum Multithreading
@@ -46,7 +46,7 @@ TATOOINE_LOG_FILE = "monitor.log"
 TATOOINE_LOG_LEVEL = logging.INFO
 
 # Get I2C bus
-bus = smbus.SMBus(1)
+bus = smbus2.SMBus(1)
 
 
 #=========================================================================
@@ -66,6 +66,7 @@ def main():
 
     # Test der Verbindung zu InfluxDB
     inflDB.check_db_connection()
+    time.sleep(2)
 
     cnt_i2c = 0
     cnt_1wire = 0
@@ -94,12 +95,9 @@ def main():
                 # Messen aller Sensoren in separatem thread
                 future_1w = executor.submit(data_handle.aquire_data_1wire)
                 cnt_1wire =0
-
-
-            s1 = time.perf_counter()
+                
             # Speichern der Messdaten
             inflDB.store_data(data_handle.data_last_measured)
-            s2 = time.perf_counter()
             
             # Bestimmung der noch verbleibenden Schleifenzeit        
             delta = time.perf_counter() - start
@@ -114,7 +112,9 @@ def main():
                 # print(f'Loop finished in {round(delta,3)} s')
                 time.sleep(delay)
                 
-            finish = time.perf_counter()    
+            print(data_handle.show_current_data())
+            
+            #finish = time.perf_counter()    
             #print(f'Loop finished in {round(finish-start,3)} s')
     
 
