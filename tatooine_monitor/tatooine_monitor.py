@@ -12,8 +12,12 @@ __status__ = "Development"
 
 from datetime import datetime
 import logging
+from pickle import FALSE, TRUE
+import sys
 import smbus2
 import time
+import argparse
+import sys
 
 # Modul zum Multithreading
 import concurrent.futures
@@ -52,10 +56,11 @@ bus = smbus2.SMBus(1)
 #=========================================================================
 # Main Program 
 #=========================================================================
-def main():
+def main(show = FALSE):
     
     # Konfiguration der Messkanäle
     helper.config_channels()
+    
     
     # Initialisierunfg der Verbindung zur InfluxDB
     inflDB = StoreDataToInflux(INFLUX_HOST, INFLUX_PORT, INFLUX_ADMIN, \
@@ -66,7 +71,7 @@ def main():
 
     # Test der Verbindung zu InfluxDB
     inflDB.check_db_connection()
-    time.sleep(2)
+    time.sleep(8)
 
     cnt_i2c = 0
     cnt_1wire = 0
@@ -111,8 +116,10 @@ def main():
             else:
                 # print(f'Loop finished in {round(delta,3)} s')
                 time.sleep(delay)
-                
-            print(data_handle.show_current_data())
+            
+            #Ausgabe der aktuellen Daten über Stdout
+            if(show):
+                print(data_handle.show_current_data())
             
             #finish = time.perf_counter()    
             #print(f'Loop finished in {round(finish-start,3)} s')
@@ -124,6 +131,40 @@ def main():
 # Starten des Hauptprogramms
 #=========================================================================
 if __name__ == '__main__':
+
+    # ==================================================
+    # Comandline Options
+    # ==================================================
+    # Define the program description
+    dscTxt = 'TatooineMonitor ist ein Programm zur Überwachung einzelner \
+        Messgrößen der Segelyacht Tatooine. Alle Messdaten werden in \
+        einer InfluxDB abgespeichert. \n Copyright: ' +__copyright__ \
+        + '\nAutor: ' + __author__
+
+    # Initialisierung des Parsers
+    parser = argparse.ArgumentParser(description=dscTxt)
+    parser.add_argument("-v", "--version", help="Anzeige Programversion", \
+        action="store_true")
+    parser.add_argument("-d", "--debug", help="Aktivierung des Debuglevel \
+        für Logging", action="store_true")
+    parser.add_argument("-s", "--show", help="Anzeige der aktuellen Werte \
+        über stdout", action="store_true")
+    args = parser.parse_args()
+    
+    
+    # Ausgabe der übergebenen Argumente
+    if args.version:
+            print ("Tatooine Monitor Version " + __version__)
+            sys.exit()
+    
+    if args.debug:
+            print ("Debug Logging enabled...")
+            TATOOINE_LOG_LEVEL = logging.DEBUG
+            
+    showData = FALSE
+    if args.show:
+            print ("Liveausgabe der Daten aktiviert...")
+            showData = TRUE
 
 
     # Konfiguration des Loggings
@@ -142,6 +183,6 @@ if __name__ == '__main__':
     logger.info('Python-Script für den TatooineMonitor neu gestartet')
            
     # Starten der Main Loop
-    main()
+    main(showData)
         
 
