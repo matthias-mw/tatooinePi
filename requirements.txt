@@ -1,1 +1,3 @@
 influxdb
+bmp280
+smbus2

@@ -25,6 +25,8 @@ from driver.i2c_ina219 import DeviceRangeError
 from driver.i2c_mpu6050 import mpu6050
 # 1Wire Treiber
 from driver.one_wire import OneWire
+# i2c Treiber für bmp280
+from bmp280 import BMP280
 
 
 class AquireData:
@@ -71,7 +73,10 @@ class AquireData:
         # Objekt für den 1-Wire Bus anlegen
         self.one_wire = OneWire()
         
-        #initialisierung der aktuellen Messdaten
+        # Objekt für BMP280
+        self.bmp280 = BMP280(i2c_dev=bus)
+        
+        #Initialisierung der aktuellen Messdaten
         self.data_last_measured =[DataPoint(x['ID'],x['Name'],x["Unit"], \
             int(x['Filter']),int(x['TickMax']), int(x['TickFast']), \
             float(x['Threshold_Abs']), float(x['Threshold_Perc'])) for x in CHANNEL_CONFIG_LIST]
@@ -207,6 +212,21 @@ class AquireData:
                             # Fehler in Logging eintragen
                             self.logger.warning(f'Keine Speicherung des Wertes: -> {f.result()[1]}')
 
+    def measure_baro(self) -> None:
+
+        # Auslesend er Messwerte        
+        temperature = self.bmp280.get_temperature()
+        pressure = self.bmp280.get_pressure()
+        isoTime = datetime.now()
+        
+        # Abseichern im Datenarray
+        for x in self.data_last_measured:        
+            if x.id == "__T_Baro":
+                self._store_data(x,temperature,isoTime)        
+            if x.id == "__Baro":
+                self._store_data(x,pressure,isoTime)    
+
+
     def aquire_data_i2c(self) -> None:
         """Zentrale Methode zum Messen aller i2c Sensoren
         
@@ -220,7 +240,18 @@ class AquireData:
         self.measure_power()
         self.measure_adc()
         self.measure_gyro()
+        
+    def aquire_data_i2c_slow(self) -> None:
+        """Zentrale Methode zum Messen aller LANGSAMEN i2c Sensoren
+        
+        Die Methode aktualisiert alle Messwerte der verbauten i2c Sensoren, welche nur in einem langsamen Intervall ausgelesen werden müssen. (Wettersensoren etc...)
+        
+        """        
 
+        #-----------------------------------------------------------------------
+        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
+        #-----------------------------------------------------------------------
+        self.measure_baro()
 
     def aquire_data_1wire(self) -> None:
         """Zentrale Methode zum auslesen aller 1 Wire Sensoren

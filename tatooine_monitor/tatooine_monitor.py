@@ -35,6 +35,8 @@ from tatooine_data import helper
 MAIN_LOOP_LENGHT_MS = 250
 # Anzahl Schleifendurchgänge bis I2C gemessen wird
 N_LOOPS_AQUIRE_I2C = 1
+# Anzahl Schleifendurchgänge bis I2C gemessen wird
+N_LOOPS_AQUIRE_I2C_SLOW = 10
 # Anzahl Schleifendurchgänge bis 1-Wire gemessen wird
 N_LOOPS_AQUIRE_1WIRE = 10
 
@@ -72,16 +74,19 @@ def main(show = FALSE):
     inflDB.check_db_connection()
 
     cnt_i2c = 0
+    cnt_i2c_slow = 0
     cnt_1wire = 0
 
     # We can use a with statement to ensure threads are cleaned up promptly
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5555) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
         future_1w  = concurrent.futures.Future()
         future_i2c  = concurrent.futures.Future()
+        future_i2c_slow  = concurrent.futures.Future()
         
         while True:
             
             cnt_i2c +=1
+            cnt_i2c_slow +=1
             cnt_1wire +=1
 
             # Bestimmung der Startzeit der Schleife
@@ -92,7 +97,13 @@ def main(show = FALSE):
                 # Messen aller Sensoren
                 future_i2c = executor.submit(data_handle.aquire_data_i2c)
                 cnt_i2c =0
-
+                
+            # i2c Messen wenn es Zeit ist und der letzte Thread beendet wurde
+            if cnt_i2c_slow >= N_LOOPS_AQUIRE_I2C_SLOW and not(future_i2c_slow.running()):
+                # Messen aller Sensoren
+                future_i2c_slow = executor.submit(data_handle.aquire_data_i2c_slow)
+                cnt_i2c_slow =0
+                
             # 1 Wire Messen wenn es Zeit ist und der letzte Thread beendet wurde
             if cnt_1wire >= N_LOOPS_AQUIRE_1WIRE and not(future_1w.running()):
                 # Messen aller Sensoren in separatem thread

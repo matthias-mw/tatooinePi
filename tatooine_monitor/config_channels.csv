@@ -13,6 +13,8 @@ __GYRO_X,GYRO_X,Gierwinkel um X,dps,4,25,5,5,100
 __GYRO_Y,GYRO_Y,Gierwinkel um Y,dps,4,25,5,5,100
 __GYRO_Z,GYRO_Z,Gierwinkel um Z,dps,4,25,5,5,100
 __GYRO_TEMP,GYRO_TEMP,GyroModultemperatur,grdC,2,60,5,1.5,10
+__T_Baro,T_inside,Temperatur ausserhalb der IT Box,grdC,2,60,5,1.5,10
+__Baro,Baro,Umgebungsdruck,grdC,2,60,5,1.5,10
 28-012113124839,T_1W_NO1,1Wire DS18S20,grdC,4,60,5,1.5,10
 28-01211321b3b6,T_1W_NO2,1Wire DS18S20,grdC,1,60,5,1.5,10
 28-0121131907b3,T_1W_NO3,1Wire DS18S20,grdC,2,60,5,1.5,10
