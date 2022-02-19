@@ -60,8 +60,7 @@ def main(show = FALSE):
     
     # Konfiguration der Messkanäle
     helper.config_channels()
-    
-    
+ 
     # Initialisierunfg der Verbindung zur InfluxDB
     inflDB = StoreDataToInflux(INFLUX_HOST, INFLUX_PORT, INFLUX_ADMIN, \
         INFLUX_PASSWORT,INFLUX_DB_NAME)
@@ -161,6 +160,10 @@ if __name__ == '__main__':
         print ("Liveausgabe der Daten aktiviert...")
         showData = TRUE
 
+    # ==================================================
+    # Config Logging
+    # ==================================================
+
     # Konfiguration des Loggings
     logger = logging.getLogger()
     logger.setLevel(TATOOINE_LOG_LEVEL)
@@ -172,6 +175,10 @@ if __name__ == '__main__':
     file_handler = logging.FileHandler(TATOOINE_LOG_FILE,"w",encoding = "UTF-8")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
+
+    # LogLevel für importierte Module
+    logging.getLogger("Adafruit_I2C.Device.Bus.1.Address.0X40").setLevel(logging.INFO)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
 
     # Logging
     logger.info('Python-Script für den TatooineMonitor neu gestartet')
