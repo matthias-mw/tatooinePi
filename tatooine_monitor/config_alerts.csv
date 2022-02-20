@@ -1,0 +1,3 @@
+Name, Unit, Description, Level, Condition, Type
+T_1W_NO1, gradC, Temperatur X, 30, gt, email
+T_1W_NO1, gradC, Temperatur X, 20, st, email

@@ -25,6 +25,7 @@ import concurrent.futures
 from tatooine_data import AquireData
 from tatooine_data import StoreDataToInflux
 from tatooine_data import helper
+from tatooine_data import Alerting
 
 
 #=========================================================================
@@ -39,6 +40,8 @@ N_LOOPS_AQUIRE_I2C = 1
 N_LOOPS_AQUIRE_I2C_SLOW = 10
 # Anzahl Schleifendurchgänge bis 1-Wire gemessen wird
 N_LOOPS_AQUIRE_1WIRE = 10
+# Anzahl Schleifendurchgänge Delay AlarmSystem nach Startup
+N_LOOPS_DELAY_ALERT_AT_STARTUP = 20
 
 #Zugangsdaten INFLUX_DB auf gleichem Raspberry
 INFLUX_HOST = "127.0.0.1"
@@ -70,12 +73,15 @@ def main(show = FALSE):
     # Initialisierung der Datenerfassung
     data_handle = AquireData(bus)
 
+    alert_handle = Alerting()
+
     # Test der Verbindung zu InfluxDB
     inflDB.check_db_connection()
 
     cnt_i2c = 0
     cnt_i2c_slow = 0
     cnt_1wire = 0
+    cnt_cycle = 0
 
     # We can use a with statement to ensure threads are cleaned up promptly
     with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
@@ -112,6 +118,16 @@ def main(show = FALSE):
                 
             # Speichern der Messdaten
             inflDB.store_data(data_handle.data_last_measured)
+            
+            # Alert Notifications
+            if (cnt_cycle > N_LOOPS_DELAY_ALERT_AT_STARTUP):
+                
+                alert_handle.calc_alerts(data_handle.data_last_measured)
+                
+                alert_handle.process_alerts()
+            else:
+                cnt_cycle +=1
+            
             
             # Bestimmung der noch verbleibenden Schleifenzeit        
             delta = time.perf_counter() - start

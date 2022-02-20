@@ -18,3 +18,4 @@ from .aquire_data import AquireData
 from .datapoint import DataPoint
 from .store_data import StoreDataToInflux
 from .helper import *
+from .alert_service import Alerting

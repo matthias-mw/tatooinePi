@@ -74,7 +74,6 @@ class StoreDataToInflux:
         # Konfiguration des Logging
         # ============================================
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(logging.NullHandler())
     
     def check_db_connection(self):
@@ -126,12 +125,11 @@ class StoreDataToInflux:
                     self._MEASUREMENT_NAME,self._TAG_LOCATION, 2)
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0  
+                
                 # die Sprungerkennung abspeichern
-                self.logger.warning(f"Sprung erkannt auf {chn.name} -> Hysterese: {chn.storage_prelim_hysterese}")
+                self.logger.debug(f"Sprung erkannt auf {chn.name} -> aktueller Wert: {chn.value:3.2f} {chn.unit}")
+                
                 chn.storage_prelim_hysterese = True
-                self.logger.warning(f"Hysterese: {chn.storage_prelim_hysterese}")
-                self.logger.warning(json_list)
-                self.logger.warning(chn.value_history)
                 chn.act_val_stored_to_db = True
 
             elif (chn.storage_tick_counter >= chn.storage_tick_max) or \
