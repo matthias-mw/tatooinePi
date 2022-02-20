@@ -4,6 +4,8 @@
 # Modul zur Verarbeitung von CSV Dateien
 import csv
 
+# Klasse für die Abspeicherung der Datenpunkte
+from .datapoint import DataPoint
 
 CONF_FILE = "config_channels.csv"
 """Konfigurationsdatei für die Messkanäle als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
@@ -45,6 +47,28 @@ def config_channels():
                     i +=1
                 # Abspeichern in der Kanal Config Liste
                 CHANNEL_CONFIG_LIST.append(channel_conf)
-
              
-            
+def show_current_data(data_last_measured: DataPoint) -> str:
+    """Tabellarische Anzeige der aktuellen Messwerte
+    
+    Diese Funktion erzeugt einen String mit einer Messwerttabelle der aktuellen Messwerte, welche der Funktion übergeben wurden. 
+
+    :param data_last_measured:  List von Datapoint mit den Messwerten
+    :type data_last_measured:   Datapoint List
+    :return: Formatierter String
+    :rtype: str
+    """
+    #-----------------------------------------------------------------------
+    #Darstellen der aktuellen Werte
+    #-----------------------------------------------------------------------
+    
+    # Header
+    strOutput = ""
+    strOutput += DataPoint.print_header()
+    
+    # Datenzeilen
+    for x in data_last_measured:
+        strOutput += '\n' + DataPoint.print_data_line(x)             
+    
+    return strOutput
+             

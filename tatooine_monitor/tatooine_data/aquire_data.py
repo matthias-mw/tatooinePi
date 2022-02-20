@@ -264,18 +264,16 @@ class AquireData:
         #-----------------------------------------------------------------------
         self.measure_1wire_ds18s20()
                      
+                     
+    def get_last_data_measured(self) -> DataPoint:
+        """Ausgabe der aktuell gemessen Daten
+        
+        Mit dieser Funktion wird die Liste der Messkanäle mit den aktuellen Messwerten ausgegeben.
 
-    def show_current_data(self) -> str:
-        #-----------------------------------------------------------------------
-        #Darstellen der aktuellen Werte
-        #-----------------------------------------------------------------------
+        :return: Liste der aktuellen Messwerte vom Typ Datapoint
+        :rtype: DataPoint
+        """
         
-        # Header
-        strOutput = ""
-        strOutput += DataPoint.print_header()
-        # Datenzeilen
-        for x in self.data_last_measured:
-            strOutput += '\n' + DataPoint.print_data_line(x)             
+        # Ausgabe der aktuellen Messwerte
+        return self.data_last_measured
         
-        return strOutput
- 

@@ -143,7 +143,7 @@ def main(show = FALSE):
             
             #Ausgabe der aktuellen Daten über Stdout
             if(show == TRUE):
-                print(data_handle.show_current_data())
+                print(chr(27) + "[2J" + helper.show_current_data(data_handle.get_last_data_measured()))
             
             #finish = time.perf_counter()    
             #print(f'Loop finished in {round(finish-start,3)} s')

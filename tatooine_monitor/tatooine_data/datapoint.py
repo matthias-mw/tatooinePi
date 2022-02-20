@@ -194,7 +194,7 @@ class   DataPoint():
             der Messwerte
         """        
         
-        return(chr(27) + "[2J" + ('Channel               Value            Mean            Deviation\n') + '====================================================================')
+        return(('Channel               Value            Mean            Deviation\n') + '====================================================================')
 
 
     def create_json_for_influxDB(self,measurement = 'signal', location = 'tag',\
