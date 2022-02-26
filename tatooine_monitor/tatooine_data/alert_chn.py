@@ -3,45 +3,52 @@
 
 # Module zur Bearbeitung der Zeitstempel
 from datetime import datetime
-import email
-from pytz import timezone
 
 # Modul für Datenklassen
 from dataclasses import dataclass
 from dataclasses import field
-
-# Import Logging Modul
-import logging
-
-# Festlegen der Zeitzone für die Aufnahme der Messwerte und deren Zeitstempel
-tz_berlin = timezone('Europe/Berlin')
-
 @dataclass
 class   AlertChn():
+    """Datenobjekt, welches die Konfiguration eines Alarms enthält
+    
+    Das Dataclass-Datenobjekt enthält alle Einstellungen für einen definierten 
+    Alarm. Neben den Einstellungen die über :mod:`~tatooine_data.alert_service.Alerting.alerts_cfg` aus der Konfigurationsdatei ausgelesen werden, sind 
+    auch Steuerungsinformationen enthalten, welche den aktuellen Zustand des 
+    Alarms beschreiben.
+    """
     
     name: str = '-'
-    """Name des Messkanals"""
+    """Name des Messkanals der zu Überwachen ist"""
     
     unit: str = '-'
-    """Masseinheit des Messwertes"""
+    """Einheit des Messwertes"""
     
     desc: str = 'desc'
-    """Beschreibung der Messkanals"""
+    """Beschreibung des Alarms"""
     
-    alert_level: float = 55555
+    level: float = 55555
+    """Schwellwert für die Überwachung des Kanals"""
     
-    alert_condition: str = "gt"
+    hysterese_level: float = 1
+    """Wert der Hysterese, um die Auslösung an der Alarmschwelle zu entprellen"""
     
-    alert_type: str = "email"
+    condition: str = "gt"
+    """Art der Überwachung der Schwelle (gt = greater then; lt = lower then)"""
     
-    alert_time: datetime = 0
+    type: str = "email"
+    """Art der Alarmmeldung (email, sms)"""
     
-    alert_status: int = 0
+    time: datetime = 0
+    """Zeitstempel der Alarmauslösung"""
     
-    alert_cycle: int = 0
+    status: int = 0
+    """Status dieses Alarms :mod:`~tatooine_data.alert_service.Alerting.ALERT_NONE` :mod:`~tatooine_data.alert_service.Alerting.ALERT_PENDING_EMAIL` :mod:`~tatooine_data.alert_service.Alerting.ALERT_PENDING_SMS` """
+    
+    cycle: int = 0
+    """Status des aktuellem Alarmzyklus :mod:`~tatooine_data.alert_service.Alerting.ALERT_CYCLE_ACTIVE` wird erst zurückgenommen, wenn die Schwelle um mindestens die Hysteres wieder unter-/überschritten wurde."""
     
     last_email_report: datetime = 0
-    
+    """Zeitstempel des letzten E-Mail Report"""
     
     
     

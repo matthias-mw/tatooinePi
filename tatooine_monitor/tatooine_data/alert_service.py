@@ -5,6 +5,10 @@
 from ast import Str
 from datetime import date, datetime
 
+# Modul zur Verarbeitung von CSV Dateien
+import csv
+import sys
+
 # Module für das Versenden von E-Mails
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -95,53 +99,96 @@ class Alerting:
     _email_limit_reached: bool = False
     """True: die zulässige maximale Anzahl von Mails wurde bereits verendet"""
     
+    CONF_FILE = "config_alerts.csv"
+    """Konfigurationsdatei für die Alarmsteuerung als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
+   
 
 
     def __init__(self, bus = None):
-        
-        self.conf_alerts()
-        
+                
         # ============================================
         # Konfiguration des Logging
         # ============================================
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(logging.NullHandler())
-        
-        pass
 
+        # Konfiguration der Alarme einlesen
+        self.conf_alerts()
+        
     
     def conf_alerts(self) -> None:
+        """Konfiguration aller Messkanäle
         
-        alert = AlertChn()
+        Zu Beginn des Programms wird die Datei :file:`config_alerts.csv` gelesen. 
+        In Ihr sind alle relevanten Alarme zeilenweise aufgeführt. So
+        werden alle Parameter in die :mod:`~tatooine_data.alert_service.Alerting.alerts_cfg` eingelesen und anschließend in der Funktion :mod:`~tatooine_data.alert_service.Alerting.calc_alerts` genutzt.
+        Es werden folgenden Spalten benötigt:
         
-        alert.name = "T_1W_NO1"
-        alert.alert_level = 42
-        alert.alert_condition = "gt"
+        .. code-block:: text
         
-        self.alerts_cfg.append(alert)
+            Name, Unit, Description, Level, Hysterese, Condition, Type
+           
+        Können die Kanäle nicht eingelesen werden, wird das Programm beendet.
         
-        alert2 = AlertChn()
-        alert2.name = "T_1W_NO1"
-        alert2.alert_level = 32
-        alert2.alert_condition = "st"
+        """    
         
-        self.alerts_cfg.append(alert2)
-        
-        
-        #ToDo
-        #print(self.alerts_cfg)
-    
-        
-        
-               
-        
-        
+        # Sicheres öffnen der CSV Datei, welche durch With automatisch
+        # nach Beendigung des Auslesen geschlossen wird
+        with open(self.CONF_FILE) as csvdatei:
+            
+            # Auslesen der Daten aus der CSV
+            csv_reader_object = csv.reader(csvdatei)
+            line_count = 0
+            header = []
+            
+            # Verarbeiten der Daten aus der CSV Zeile für Zeile
+            for row in csv_reader_object:
+                # Die erste Zeile der CSV repäsentiert die Header
+                if line_count == 0:
+                    header = [colum for colum in row]
+                    line_count +=1
+                # Zuordnen der Config eines jeden Kanals in ein Dictonary
+                else:
+                    i=0
+                    channel_conf = {}
+                    for y in header:
+                        channel_conf[y] = row[i]
+                        i +=1
+
+                    # Auswerten der Konfig Daten aus der CSV
+                    try:
+                        alert = AlertChn()
+                        alert.name = channel_conf['Name']
+                        alert.unit = channel_conf['Unit']
+                        alert.desc = channel_conf['Description']
+                        alert.level = float(channel_conf['Level'])
+                        alert.hysterese_level = float(channel_conf['Hysterese'])
+                        alert.condition  = channel_conf['Condition']
+                        alert.type  = channel_conf['Type']
+                        
+                        # in der Liste der Alarme abspeichern
+                        self.alerts_cfg.append(alert)
+                        self.logger.debug(f"Alarm konfiguriert: {alert.name}( {alert.unit}), {alert.level} +/-{alert.hysterese_level} , {alert.condition}")
+                        
+                    # Programm beenden sollte das Auslesen schief gehen
+                    except:
+
+                        self.logger.critical(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}. Es werden folgende Spaltenheader erwartet: Name, Unit, Description, Level, Hysterese, Condition, Type")
+                        
+                        print(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}\nEs werden folgende Spaltenheader erwartet:\nName, Unit, Description, Level, Hysterese, Condition, Type")
+                        print("Programm wird beendet ...")
+                        
+                        print(header)
+                        # beendet das Programm
+                        sys.exit() 
+
+
     def calc_alerts(self, current_data_list: list[DataPoint]) -> None:
         """Berechnung der anliegenden Alarme
              
         Diese Funktion analysiert alle Alarmkonfigurationen in 
         :mod:`~tatooine_data.alert_service.Alerting.alerts_cfg` und vergleicht
-        anhand der aktuellen Messdaten, ob der jeweilige Alarm ausgelöst werden muss. Abhängig von dem Alarmtyp  :mod:`~tatooine_data.alert_chn.Alert_Chn.alert_type` werden verschieden Aktionen ausgelöst.
+        anhand der aktuellen Messdaten, ob der jeweilige Alarm ausgelöst werden muss. Abhängig von dem Alarmtyp  :mod:`~tatooine_data.alert_chn.Alert_Chn.type` werden verschieden Aktionen ausgelöst.
 
         :param current_data_list: Array der aktuellen Messdaten
         :type current_data_list: list[DataPoint]
@@ -150,63 +197,64 @@ class Alerting:
         # Für jede Alarmconfiguration        
         for alert in self.alerts_cfg:
             # überprüfe jeden Messkanal, ob er ausgewertet werden muss
+           
             for chn in current_data_list:
                 # Wenn der Kanal mit Alarm überwacht wird
                 if (chn.name == alert.name):
-                    
+
                     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     # Alarmwert wird erstmalig überschritten
                     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    if ((alert.alert_condition == "gt") and (chn.value > alert.alert_level) and (alert.alert_cycle == self.ALERT_CYCLE_RESET)):
+                    if ((alert.condition == "gt") and (chn.value > alert.level) and (alert.cycle == self.ALERT_CYCLE_RESET)):
                         
                         # Abspeichern der Uhrzeit                        
-                        alert.alert_time = datetime.now()
+                        alert.time = datetime.now()
                         
                         # Abspeichern Status (E-Mail ist Default)
-                        if alert.alert_type == "sms":
-                            alert.alert_status = self.ALERT_PENDING_SMS
+                        if alert.type == "sms":
+                            alert.status = self.ALERT_PENDING_SMS
                         else:
-                            alert.alert_status = self.ALERT_PENDING_EMAIL
-                        alert.alert_cycle = self.ALERT_CYCLE_ACTIVE
+                            alert.status = self.ALERT_PENDING_EMAIL
+                        alert.cycle = self.ALERT_CYCLE_ACTIVE
                         
                         # Logging
-                        self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.alert_level:3.2f}{alert.unit}")
+                        self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.level:3.2f}{alert.unit}")
                         
                         # ToDo
-                        print(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.alert_level}{alert.unit}")
+                        print(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.level} {alert.unit}")
                         
                     # Alarmwert Überschreitung wird zurückgesetzt
-                    elif ((alert.alert_condition == "gt") and (chn.value < alert.alert_level) and (alert.alert_cycle == self.ALERT_CYCLE_ACTIVE)):
+                    elif ((alert.condition == "gt") and (chn.value < alert.level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
 
                         # Reset der Alarmbedingung
-                        alert.alert_cycle = self.ALERT_CYCLE_RESET
+                        alert.cycle = self.ALERT_CYCLE_RESET
                     
                     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     # Alarmwert wird erstmalig unterschritten      
                     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    elif ((alert.alert_condition == "st") and (chn.value < alert.alert_level) and (alert.alert_cycle == self.ALERT_CYCLE_RESET)):
+                    elif ((alert.condition == "st") and (chn.value < alert.level) and (alert.cycle == self.ALERT_CYCLE_RESET)):
                         
                         # Abspeichern der Uhrzeit                        
-                        alert.alert_time = datetime.now()
+                        alert.time = datetime.now()
                         
                         # Abspeichern Status (E-Mail ist Default)
-                        if alert.alert_type == "sms":
-                            alert.alert_status = self.ALERT_PENDING_SMS
+                        if alert.type == "sms":
+                            alert.status = self.ALERT_PENDING_SMS
                         else:
-                            alert.alert_status = self.ALERT_PENDING_EMAIL
-                        alert.alert_cycle = self.ALERT_CYCLE_ACTIVE
+                            alert.status = self.ALERT_PENDING_EMAIL
+                        alert.cycle = self.ALERT_CYCLE_ACTIVE
                         
                         # Logging
-                        self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist kleiner {alert.alert_level:3.2f}{alert.unit}")
+                        self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist kleiner {alert.level:3.2f}{alert.unit}")
                         
                         # ToDo
-                        print(f"Alarmmeldung: Kanal {alert.name} ist kleiner {alert.alert_level}{alert.unit}")
+                        print(f"Alarmmeldung: Kanal {alert.name} ist kleiner {alert.level} {alert.unit}")
                         
                     # Alarmwert Unterschreitung wird zurückgesetzt
-                    elif ((alert.alert_condition == "st") and (chn.value > alert.alert_level) and (alert.alert_cycle == self.ALERT_CYCLE_ACTIVE)):
+                    elif ((alert.condition == "st") and (chn.value > alert.level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
 
                         # Reset der Alarmbedingung
-                        alert.alert_cycle = self.ALERT_CYCLE_RESET
+                        alert.cycle = self.ALERT_CYCLE_RESET
             
                     else:
                         
@@ -217,7 +265,7 @@ class Alerting:
         """Verarbeiten von allen Alarmkonfigurationen
 
         Diese Funktion verarbeitet alle durch 
-        :mod:`~tatooine_data.alert_service.Alerting.calc_alerts` ermittelten aktiven Alarme. Abhängig von dem Alarmtyp  :mod:`~tatooine_data.alert_chn.Alert_Chn.alert_type` werden verschieden Aktionen ausgelöst.
+        :mod:`~tatooine_data.alert_service.Alerting.calc_alerts` ermittelten aktiven Alarme. Abhängig von dem Alarmtyp  :mod:`~tatooine_data.alert_chn.Alert_Chn.type` werden verschieden Aktionen ausgelöst.
 
         :param current_data_list: Array der aktuellen Messdaten
         :type current_data_list: list[DataPoint]
@@ -228,11 +276,11 @@ class Alerting:
         for alert in self.alerts_cfg:
             
             # Wenn ein Alarm anliegt und eine EMail gesendet werden soll
-            if ((alert.alert_status == self.ALERT_PENDING_EMAIL) and 
-                (alert.alert_type == "email")):
+            if ((alert.status == self.ALERT_PENDING_EMAIL) and 
+                (alert.type == "email")):
                 
                 # Zeit seit Eintritt des Alarms                
-                delay = datetime.now() - alert.alert_time
+                delay = datetime.now() - alert.time
                 
                 # Debounce E-Mail
                 if delay.total_seconds() > self.DEBOUNCE_EMAIL_ALARM_S:
@@ -319,14 +367,7 @@ class Alerting:
             smtpObj.login(self.__USERNAME, self.__PASSWORD)
             # absenden der E-Mail
             smtpObj.sendmail(self.__EMAIL_SENDER, self.__EMAIL_RECIEVER, msg.as_string())
-            
 
-            
-        else:
-            
-            self.logger.debug(f'Emaillimit erreicht oder Email Unterdrückt, Alarm NR {self._cnt_email_current_day}')
-            
-        pass
         
         
     def msg_html(self, current_data_list: list[DataPoint], add_text: str) -> Str:
@@ -380,21 +421,19 @@ class Alerting:
         for alert in self.alerts_cfg:
             
             # Wenn ein Alarm anliegt und eine EMail gesendet werden soll
-            if (alert.alert_status == self.ALERT_PENDING_EMAIL):
+            if (alert.status == self.ALERT_PENDING_EMAIL):
                 
                 # Alarmmeldung erstellen
-                body += f"<h3>Kanal {alert.name} hat die Schwelle von {alert.alert_level:3.2f}{alert.unit} um {alert.alert_time.strftime('%H:%M:%S')}"
+                body += f"<h3>Kanal {alert.name} hat die Schwelle von {alert.level:3.2f}{alert.unit} um {alert.time.strftime('%H:%M:%S')}"
                 
                 # Berücksichtigung der AlarmCondition
-                if (alert.alert_condition == "st"):
-                    body += " unterschritten!"
+                if (alert.condition == "st"):
+                    body += " unterschritten!</h3>"
                 else:
-                    body += " überschritten!"
+                    body += " überschritten!</h3>"
                 
                 # Alarmmeldung erfolgreich abgeschlossen
-                alert.alert_status = self.ALERT_NONE
-
-        body +="</h3>"
+                alert.status = self.ALERT_NONE
         
         # Alle aktuellen MEsswerte anhängen
         # Tabellenkopf

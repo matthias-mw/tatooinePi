@@ -1,3 +1,5 @@
-Name, Unit, Description, Level, Condition, Type
-T_1W_NO1, gradC, Temperatur X, 30, gt, email
-T_1W_NO1, gradC, Temperatur X, 20, st, email
+Name,Unit,Description,Level,Hysterese,Condition,Type
+T_1W_NO1,gradC,Temperatur X,36,1,gt,email
+T_1W_NO1,gradC,Temperatur X,24,1,st,email
+T_1W_NO4,gradC,Temperatur X,42,1,gt,email
+T_1W_NO4,gradC,Temperatur X,32,1,st,email
