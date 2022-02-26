@@ -48,13 +48,13 @@ def config_channels():
                 # Abspeichern in der Kanal Config Liste
                 CHANNEL_CONFIG_LIST.append(channel_conf)
              
-def show_current_data(data_last_measured: DataPoint) -> str:
+def show_current_data(data_last_measured: list[DataPoint]) -> str:
     """Tabellarische Anzeige der aktuellen Messwerte
     
     Diese Funktion erzeugt einen String mit einer Messwerttabelle der aktuellen Messwerte, welche der Funktion übergeben wurden. 
 
     :param data_last_measured:  List von Datapoint mit den Messwerten
-    :type data_last_measured:   Datapoint List
+    :type data_last_measured:   Liste von Datapoint 
     :return: Formatierter String
     :rtype: str
     """

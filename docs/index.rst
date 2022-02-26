@@ -22,7 +22,11 @@ Inhalt
    Konfiguration aller gemessen Kanäle.
 
 :doc:`tatooine_data`
-    In diesem Package sind alle Module zu Erfassung, Berechnung und Speicherung von den Messdaten  des TatooineMonitor enthalten.
+    In diesem Package sind alle Module zu Erfassung, Berechnung und Speicherung von den Messdaten des TatooineMonitor enthalten.
+
+:doc:`tatooine_notify`
+    In diesem Package sind alle Module zum Benachrichtigungs- und Alarmsystem von den Messdaten des TatooineMonitor enthalten.
+
 :doc:`driver`
     In diesem Package sind alle Module (Treiber) integriert, welche zur Gewinnung von Messdaten des TatooineMonitors benötigt werden.
 
@@ -35,6 +39,7 @@ Inhalt
 
    config_channels
    tatooine_data
+   tatooine_notify
    driver
 
 

@@ -27,6 +27,6 @@ Aktive Messkanäle des TatooineMonitors
 
 
 .. csv-table:: 
-   :file:   /home/pi/TatooineMonitor/tatooine_monitor/config_channels.csv
+   :file:   /home/pi/tatooinePi/tatooine_monitor/config_channels.csv
    :widths: 20, 10, 10, 10, 10, 10, 10, 10, 10
    :header-rows: 1

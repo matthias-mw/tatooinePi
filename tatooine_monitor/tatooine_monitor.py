@@ -122,9 +122,9 @@ def main(show = FALSE):
             # Alert Notifications
             if (cnt_cycle > N_LOOPS_DELAY_ALERT_AT_STARTUP):
                 
-                alert_handle.calc_alerts(data_handle.data_last_measured)
+                alert_handle.calc_alerts(data_handle.get_last_data_measured())
                 
-                alert_handle.process_alerts()
+                alert_handle.process_alerts(data_handle.get_last_data_measured())
             else:
                 cnt_cycle +=1
             
