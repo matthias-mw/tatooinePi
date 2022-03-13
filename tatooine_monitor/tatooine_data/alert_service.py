@@ -176,11 +176,10 @@ class Alerting:
                         self.logger.critical(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}. Es werden folgende Spaltenheader erwartet: Name, Unit, Description, Level, Hysterese, Condition, Type")
                         
                         print(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}\nEs werden folgende Spaltenheader erwartet:\nName, Unit, Description, Level, Hysterese, Condition, Type")
-                        print("Programm wird beendet ...")
                         
                         print(header)
                         # beendet das Programm
-                        sys.exit() 
+                        sys.exit("Programm wird beendet wegen falscher Alert Config...") 
 
 
     def calc_alerts(self, current_data_list: list[DataPoint]) -> None:
@@ -220,9 +219,6 @@ class Alerting:
                         # Logging
                         self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.level:3.2f}{alert.unit}")
                         
-                        # ToDo
-                        print(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.level} {alert.unit}")
-                        
                     # Alarmwert Überschreitung wird zurückgesetzt
                     elif ((alert.condition == "gt") and (chn.value < alert.level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
 
@@ -246,9 +242,7 @@ class Alerting:
                         
                         # Logging
                         self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist kleiner {alert.level:3.2f}{alert.unit}")
-                        
-                        # ToDo
-                        print(f"Alarmmeldung: Kanal {alert.name} ist kleiner {alert.level} {alert.unit}")
+                       
                         
                     # Alarmwert Unterschreitung wird zurückgesetzt
                     elif ((alert.condition == "st") and (chn.value > alert.level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
@@ -293,7 +287,7 @@ class Alerting:
     def email_limit(self) -> bool:
         """Check ob das aktuelle E-Mail Limit erreicht wurde
         
-        Die Funktion checkz ob die Anzahl der pro Tag zulässigen E-Mails
+        Die Funktion checkt, ob die Anzahl der pro Tag zulässigen E-Mails
         :class:`~tatooine_data.alert_service.Alerting.EMAIL_LIMIT_PER_DAY` 
         bereits versendet wurde.
 
@@ -317,6 +311,9 @@ class Alerting:
                 self._email_limit_reached = True
                 return True
         else:
+            
+            #ToDo Pending Alarme zurücksetzen
+            
             # EMail Tageslimit zurücksetzen
             self._cnt_email_current_day = 0
             self._email_limit_reached = False

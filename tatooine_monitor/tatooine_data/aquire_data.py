@@ -4,6 +4,9 @@
 # Modul zur Bearbeitung der Zeitstempel
 from datetime import datetime
 
+# Module für ReguläreExpressions
+import re
+
 # Modul zum Multithreading
 import concurrent.futures
 
@@ -15,6 +18,9 @@ from .datapoint import DataPoint
 
 # Helper Modul stell Kanalkonfiguration zur Verfügung
 from .helper import *
+
+# Serviceklasse für die GPIOs
+from .gpio_service import GpioService
 
 #i2c Treiber - AD-Wandler ADS1115
 from driver.i2c_ads1115  import ADS1115
@@ -89,7 +95,7 @@ class AquireData:
         self.logger.addHandler(logging.NullHandler())
    
     def _store_data(self, data_point, value, 
-                    time = datetime.now()):
+                    time):
         """Abspeichern eines Wertes in einen Datenpunkt
 
         Mit dieser internen Hilfsfunktion wird ein Messwert samt Einheit und Zeitstempel in den entsprechenden Datenpunkt abgespeichert.
@@ -99,7 +105,7 @@ class AquireData:
         :type data_point: class DataPoint
         :param value: abzuspeichernder Messwert, defaults to 0.0
         :type value: float, optional
-        :param time: Zeitstempel des Messwertes, defaults to datetime.now()
+        :param time: Zeitstempel des Messwertes
         :type time: datetime objekt, optional
         """        
 
@@ -208,23 +214,55 @@ class AquireData:
                             # Abspeichern des Wertes
                             self._store_data(x,float(f.result()[1]),isoTime)
                         else:
-                            #ToDo
                             # Fehler in Logging eintragen
-                            self.logger.warning(f'Keine Speicherung des Wertes: -> {f.result()[1]}')
+                            self.logger.warning(f'Keine Speicherung des Wertes: -> {f.result()[1]} von Sensor {x.id}')
 
     def measure_baro(self) -> None:
-
+        """ Auslesen des Umgebungsdruckes und der Temperatur
+        
+        Diese Methode liest die MEsswerte des Chips BMP280 aus und speichert
+        daraus die akutelle Temperatur und den aktuellen Luftdruck in dem 
+        Array [:class:`~tatooine_data.datapoint.DataPoint.data_last_measured`]
+        ab.
+        """
+        
         # Auslesend er Messwerte        
         temperature = self.bmp280.get_temperature()
         pressure = self.bmp280.get_pressure()
         isoTime = datetime.now()
         
-        # Abseichern im Datenarray
+        # Abspeichern im Datenarray
         for x in self.data_last_measured:        
             if x.id == "__T_Baro":
                 self._store_data(x,temperature,isoTime)        
             if x.id == "__Baro":
                 self._store_data(x,pressure,isoTime)    
+
+    def measure_gpio(self) -> None:
+        """ Auslesen aller GPIOs
+        
+        Diese Methode liest alle GPIOs die in der Channelconfig :file:`config_channels.csv` konfiguriert wurden, aus und speichert 
+        sie in dem Array 
+        [:class:`~tatooine_data.datapoint.DataPoint.data_last_measured`] ab.
+        
+        """
+        isoTime = datetime.now()
+        tmp = GpioService()
+        
+        # Abseichern im Datenarray
+        for x in self.data_last_measured:
+            
+            # Wenn es sich um einen GPIO Kanal handelt 
+            reg = re.search("GPIO", x.id)
+            if reg:
+                # Die Kanalnummer ermitteln
+                gpio_chn = int (x.id[reg.span()[1]:])
+                # Den Kanal auslesen
+                resultIo = tmp.getGPIO(gpio_chn)
+ 
+                # Abspeichern des Wertes
+                self._store_data(x,resultIo,isoTime)
+                
 
 
     def aquire_data_i2c(self) -> None:
@@ -240,6 +278,8 @@ class AquireData:
         self.measure_power()
         self.measure_adc()
         self.measure_gyro()
+        
+        self.measure_gpio()
         
     def aquire_data_i2c_slow(self) -> None:
         """Zentrale Methode zum Messen aller LANGSAMEN i2c Sensoren

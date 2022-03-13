@@ -115,8 +115,8 @@ class StoreDataToInflux:
         
         #für jeden Kanal überprüfen, ob er geschrieben werden muss
         for chn in current_data_list:
-                
-            #Wenn der Wert sich erstmalig stark geändert hat
+            
+            # Wenn der Wert sich erstmalig stark geändert hat
             if (chn.value_dev_abs > chn.thd_deviation_abs) and \
                 not(chn.storage_prelim_hysterese):
 
@@ -132,6 +132,7 @@ class StoreDataToInflux:
                 chn.storage_prelim_hysterese = True
                 chn.act_val_stored_to_db = True
 
+            # Wenn der die max Anzahl von Zyklen ohne Speicherung abgelaufen ist
             elif (chn.storage_tick_counter >= chn.storage_tick_max) or \
                 (chn.value_dev_abs > chn.thd_deviation_abs):
                 
@@ -141,7 +142,9 @@ class StoreDataToInflux:
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
                 chn.act_val_stored_to_db = True
-                
+            
+
+            # keine Speicherung in diesem Zyklus und Zykluscounter hochzählen
             else:
                 chn.storage_tick_counter += 1
             
