@@ -3,6 +3,9 @@
 
 # Modul zur Verarbeitung von CSV Dateien
 import csv
+import sys
+import logging
+from configparser import ConfigParser
 
 # Klasse für die Abspeicherung der Datenpunkte
 from .datapoint import DataPoint
@@ -71,4 +74,42 @@ def show_current_data(data_last_measured: list[DataPoint]) -> str:
         strOutput += '\n' + DataPoint.print_data_line(x)             
     
     return strOutput
-             
+            
+            
+            
+def getConfigValue (config: ConfigParser, section: str , key: str):
+    """Auslesen ein COnfigurationsvalue aus dem Conf File
+    
+    Mit dieser Methode wird jeweils eine einzeln Konfigurationsvariable aus dem 
+    CONF File ausgelesen. Dazu muss die Section und der entsprechende Schlüssel
+    angegeben werden. Sollte dieser Schlüssel nicht in dem CONF File vorhanden
+    sein, wird das Programm beendet.
+
+    :param config: Config Object bestehend aus dem gesamten CONF File
+    :type config: ConfigParser
+    :param section: Abschnitt in der Conf
+    :type section: String
+    :param key: Schlüsselwert der Variable
+    :type key: String
+    :return: Conf Wert
+    :rtype: String
+    """
+    
+
+    try:
+        # Auslesen der Variable
+        return config.get(section, key)
+        
+    except:
+        # Ausgabe des ConfigFehlers
+        print(f"Fehler beim Auslesen der Config bei Section: {section} und Key: {key}!")
+        # Logging
+        logging.critical(f"Fehler beim Auslesen der Config bei Section: {section} und Key: {key}! -> Programmabbruch")
+    
+    # Abbruch des Programms wegen ConfigFehler
+    sys.exit("Programmabbruch wegen Configfehler")
+    
+    return None
+    
+    
+    

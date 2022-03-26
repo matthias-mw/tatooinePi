@@ -17,7 +17,9 @@ import sys
 import smbus2
 import time
 import argparse
-import sys
+import os
+
+from configparser import ConfigParser
 
 # Modul zum Multithreading
 import concurrent.futures
@@ -32,6 +34,10 @@ from tatooine_data import Alerting
 # Konfiguration 
 #=========================================================================
 
+# Pfad zum ConfigFile des des MonitorProgramms
+TATOOINE_CONF_FILE = "monitor_live.conf"
+
+
 # Länge der Hauptschleife
 MAIN_LOOP_LENGHT_MS = 250
 # Anzahl Schleifendurchgänge bis I2C gemessen wird
@@ -43,16 +49,6 @@ N_LOOPS_AQUIRE_1WIRE = 10
 # Anzahl Schleifendurchgänge Delay AlarmSystem nach Startup
 N_LOOPS_DELAY_ALERT_AT_STARTUP = 20
 
-#Zugangsdaten INFLUX_DB auf gleichem Raspberry
-INFLUX_HOST = "127.0.0.1"
-INFLUX_PORT = 8086
-INFLUX_ADMIN = "admin"
-INFLUX_PASSWORT = "tatooinedb"
-INFLUX_DB_NAME = "sensors"
-
-# Logging
-TATOOINE_LOG_FILE = "monitor.log"
-TATOOINE_LOG_LEVEL = logging.INFO
 
 # Get I2C bus
 bus = smbus2.SMBus(1)
@@ -67,13 +63,14 @@ def main(show = FALSE):
     helper.config_channels()
  
     # Initialisierunfg der Verbindung zur InfluxDB
-    inflDB = StoreDataToInflux(INFLUX_HOST, INFLUX_PORT, INFLUX_ADMIN, \
-        INFLUX_PASSWORT,INFLUX_DB_NAME)
+    inflDB = StoreDataToInflux(influx_host, influx_port, influx_admin, \
+        influx_passwort,influx_db_name,influx_measurement,influx_tag_location)
 
     # Initialisierung der Datenerfassung
     data_handle = AquireData(bus)
 
-    alert_handle = Alerting()
+    # Initialisierung Alarmsystem
+    alert_handle = Alerting(Config)
 
     # Test der Verbindung zu InfluxDB
     inflDB.check_db_connection()
@@ -154,6 +151,42 @@ def main(show = FALSE):
 #=========================================================================
 if __name__ == '__main__':
 
+
+    # ==================================================
+    # Auslesen des Config Files
+    # ==================================================
+    # Einlesen des COnfigfiles
+    Config = ConfigParser()
+    Config.read(TATOOINE_CONF_FILE)
+
+    print(Config.sections())
+
+    #Zugangsdaten INFLUX_DB auf gleichem Raspberry
+    influx_host = helper.getConfigValue(Config,"InfluxDB","HOST")
+    influx_port = helper.getConfigValue(Config,"InfluxDB","PORT")
+    influx_admin = helper.getConfigValue(Config,"InfluxDB","ADMIN")
+    influx_passwort = helper.getConfigValue(Config,"InfluxDB","PASSWORT")
+    influx_db_name = helper.getConfigValue(Config,"InfluxDB","DB_NAME")
+    influx_measurement = helper.getConfigValue(Config,"InfluxDB","MEASUREMENT")
+    influx_tag_location = helper.getConfigValue(Config,"InfluxDB","TAG_LOCATION")
+    
+    # Logging
+    tatooine_log_file = helper.getConfigValue(Config,"Logging","LOG_FILE")
+    tatooine_log_dir = helper.getConfigValue(Config,"Logging","LOG_DIR")
+    log_file_full_name = os.path.join(tatooine_log_dir, tatooine_log_file)
+    
+    tmp = helper.getConfigValue(Config,"Logging","LOG_LEVEL")
+    if (tmp == "DEBUG"):
+        tatooine_log_level = logging.DEBUG
+    if (tmp == "INFO"):
+        tatooine_log_level = logging.INFO
+    if (tmp == "WARNING"):
+        tatooine_log_level = logging.WARNING
+    if (tmp == "ERROR"):
+        tatooine_log_level = logging.ERROR
+    
+    
+   
     # ==================================================
     # Comandline Options
     # ==================================================
@@ -180,12 +213,16 @@ if __name__ == '__main__':
     
     if args.debug:
         print ("Debug Logging enabled...")
-        TATOOINE_LOG_LEVEL = logging.DEBUG
+        tatooine_log_level = logging.DEBUG
             
     showData = FALSE
     if args.show:
         print ("Liveausgabe der Daten aktiviert...")
         showData = TRUE
+
+
+
+
 
     # ==================================================
     # Config Logging
@@ -193,13 +230,14 @@ if __name__ == '__main__':
 
     # Konfiguration des Loggings
     logger = logging.getLogger()
-    logger.setLevel(TATOOINE_LOG_LEVEL)
+    logger.setLevel(tatooine_log_level)
 
     # Logging - Format
     formatter = logging.Formatter('%(levelname)s %(asctime)s %(name)s %(message)s ')
 
     # Logging Ausgabeformat
-    file_handler = logging.FileHandler(TATOOINE_LOG_FILE,"w",encoding = "UTF-8")
+    file_handler = logging.FileHandler(log_file_full_name,"a", \
+        encoding = "UTF-8")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 

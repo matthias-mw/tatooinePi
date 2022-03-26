@@ -26,6 +26,12 @@ from .alert_chn import AlertChn
 # Import Logging Modul
 import logging
 
+# Config Files auswerten
+from configparser import ConfigParser
+
+# Hilfsfunktionen
+from .helper import *
+
 
 class Alerting:
     """Benachrichtigungssystem von TatooineMonitor
@@ -42,15 +48,14 @@ class Alerting:
     
     """
 
-
-    __SMTP_SERVER = "smtp.strato.de"
+    __SMTP_SERVER = ""
     """Adresse des SMTP Servers für die E-Mailaustausch """
     __SMTP_PORT = 587
     """Port des SMTP Servers für die E-Mailaustausch """
 
-    __EMAIL_SENDER = "info@sv-tatooine.com"
+    __EMAIL_SENDER = ""
     """Absender Adresse für die E-Mails"""
-    __EMAIL_RECIEVER = "werner.matthias@web.de"
+    __EMAIL_RECIEVER = ""
     """Empfängeradresse für die E-Mails"""
 
     #ToDo Daten verschlüsseln
@@ -104,8 +109,23 @@ class Alerting:
    
 
 
-    def __init__(self, bus = None):
-                
+    def __init__(self, conf: ConfigParser):
+        
+        # ============================================
+        # Einstellungen aus confFile übernehmen
+        # ============================================
+        self.__SMTP_SERVER = helper.getConfigValue(conf,"ALERTING","SMTP_SERVER")
+        self.__SMTP_PORT = int(helper.getConfigValue(conf,"ALERTING","SMTP_PORT"))
+        self.__EMAIL_SENDER = helper.getConfigValue(conf,"ALERTING","EMAIL_SENDER")
+        self.__EMAIL_RECIEVER = helper.getConfigValue(conf,"ALERTING","EMAIL_RECIEVER")
+        self.DEBOUNCE_EMAIL_ALARM_S = int(helper.getConfigValue(conf,\
+            "ALERTING","DEBOUNCE_EMAIL_ALARM_S"))
+        self.DEBOUNCE_EMAIL_BETWEEN_ALARM_S = int(helper.getConfigValue(conf,\
+            "ALERTING", "DEBOUNCE_EMAIL_BETWEEN_ALARM_S"))
+        self.EMAIL_LIMIT_PER_DAY = int(helper.getConfigValue(conf,"ALERTING",\
+            "EMAIL_LIMIT_PER_DAY"))
+        
+        
         # ============================================
         # Konfiguration des Logging
         # ============================================
@@ -312,8 +332,6 @@ class Alerting:
                 return True
         else:
             
-            #ToDo Pending Alarme zurücksetzen
-            
             # EMail Tageslimit zurücksetzen
             self._cnt_email_current_day = 0
             self._email_limit_reached = False
@@ -365,6 +383,8 @@ class Alerting:
             # absenden der E-Mail
             smtpObj.sendmail(self.__EMAIL_SENDER, self.__EMAIL_RECIEVER, msg.as_string())
 
+            self.logger.info(f"Alarm-EMail versendet.")
+            self.logger.debug(f"Alarm-EMail Config: {self.__SMTP_SERVER} {self.__SMTP_PORT} {msg['To']} -> {txt}")
         
         
     def msg_html(self, current_data_list: list[DataPoint], add_text: str) -> Str:
