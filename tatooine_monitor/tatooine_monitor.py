@@ -221,8 +221,9 @@ if __name__ == '__main__':
         showData = TRUE
 
 
-
-
+    # Ausgabe der Größe relevanter Verzeichnisse zur Info
+    helper.printDiskUsage(Config)
+    
 
     # ==================================================
     # Config Logging

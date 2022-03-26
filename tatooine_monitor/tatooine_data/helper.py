@@ -4,6 +4,7 @@
 # Modul zur Verarbeitung von CSV Dateien
 import csv
 import sys
+import os
 import logging
 from configparser import ConfigParser
 
@@ -111,5 +112,50 @@ def getConfigValue (config: ConfigParser, section: str , key: str):
     
     return None
     
+def getFolderSize (folder: str, unit = "mb"):
+    """Ausgabe der Größe eines Verzeichnisses
     
+    Mit dieser Methode wird die Größe eines Verzeichnisses ermittelt und
+    ausgegeben. Dabei ist es möglich verschiedene Einheiten vorzugeben.
+
+    :param folder: Pfad des Verzeichnisses
+    :type folder: str
+    :param unit: Einheit, defaults to "mb"
+    :type unit: str, optional
+    :return: Verzeichnisgrösse
+    :rtype: float
+    """
+    
+    size = 0
+    # Iterieren durch alle Files
+    for path, dirs, files in os.walk(folder): 
+        for f in files: 
+            fp = os.path.join(path, f) 
+            size += os.path.getsize(fp) 
+    
+    if (unit.lower() == "mb"):
+        # Ausgabe der Größe in MB
+        return float(size / 1024 / 1024)
+    elif (unit.lower() == "gb"):
+        # Ausgabe der Größe in GB
+        return float(size / 1024 / 1024 / 1024)
+    else:
+        # Ausgabe der Größe in Bytes
+        return float(size)
+   
+
+def printDiskUsage(config: ConfigParser) -> None:
+    """Ausgabe der Verzeichnisgröße
+    
+    Diese Methode gibt relevante Verzeichnisgrößen aus. Die Verzeichnisse wurden
+    in der CONF Datei spezifiziert.
+
+    :param config: Config
+    :type config: ConfigParser
+    """
+    
+    influx_size = getFolderSize(getConfigValue(config,"COMMON",\
+        "INFLUX_DB_PATH"))
+    
+    print(f"Datenbankgröße InfluxDB:  {influx_size :0.2f} Mb")
     
