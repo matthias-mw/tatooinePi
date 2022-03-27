@@ -188,7 +188,7 @@ class Alerting:
                         
                         # in der Liste der Alarme abspeichern
                         self.alerts_cfg.append(alert)
-                        self.logger.debug(f"Alarm konfiguriert: {alert.name}( {alert.unit}), {alert.level} +/-{alert.hysterese_level} , {alert.condition}")
+                        self.logger.info(f"Alarm konfiguriert: {alert.name}( {alert.unit}), {alert.level} +/-{alert.hysterese_level} , {alert.condition}")
                         
                     # Programm beenden sollte das Auslesen schief gehen
                     except:

@@ -144,7 +144,7 @@ def getFolderSize (folder: str, unit = "mb"):
         return float(size)
    
 
-def printDiskUsage(config: ConfigParser) -> None:
+def printDiskUsage(config: ConfigParser) -> str:
     """Ausgabe der Verzeichnisgröße
     
     Diese Methode gibt relevante Verzeichnisgrößen aus. Die Verzeichnisse wurden
@@ -154,8 +154,15 @@ def printDiskUsage(config: ConfigParser) -> None:
     :type config: ConfigParser
     """
     
+    tmp = ""
+    # bestimmen der zu überwachenden Pfade
     influx_size = getFolderSize(getConfigValue(config,"COMMON",\
         "INFLUX_DB_PATH"))
+    motion_size = getFolderSize(getConfigValue(config,"COMMON",\
+        "VIDEO_PATH"))
     
-    print(f"Datenbankgröße InfluxDB:  {influx_size :0.2f} Mb")
+    # Ausgabestring erstellen
+    tmp += f"Datenbankgröße InfluxDB:  {influx_size :0.2f} Mb"
+    tmp += f"\nDatenbankgröße MotionEye:  {motion_size :0.2f} Mb"
     
+    return (tmp)

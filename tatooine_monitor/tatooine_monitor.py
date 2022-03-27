@@ -222,7 +222,7 @@ if __name__ == '__main__':
 
 
     # Ausgabe der Größe relevanter Verzeichnisse zur Info
-    helper.printDiskUsage(Config)
+    print (helper.printDiskUsage(Config))
     
 
     # ==================================================
@@ -247,8 +247,10 @@ if __name__ == '__main__':
     logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
 
     # Logging
+    logger.info('=============================================================')
     logger.info('Python-Script für den TatooineMonitor neu gestartet')
-           
+    logger.info('=============================================================')
+    
     # Starten der Main Loop
     main(showData)
         
