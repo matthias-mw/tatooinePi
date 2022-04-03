@@ -44,6 +44,9 @@ class GpioService:
         # ============================================
         GPIO.setmode(GPIO.BCM)
         
+        # ToDo  "GPIO already user"-Fehler adequat abfangen
+        GPIO.setwarnings(False)
+        
         # GPIO Eingänge wählen
         for n in self._GPIO_IN:
             GPIO.setup(n, GPIO.IN)
