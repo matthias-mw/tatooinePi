@@ -1,5 +1,9 @@
 Name,Unit,Description,Level,Hysterese,Condition,Type
-T_1W_NO1,gradC,Temperatur X,36,1,gt,email
-T_1W_NO1,gradC,Temperatur X,24,1,st,email
-T_1W_NO4,gradC,Temperatur X,42,1,gt,email
-T_1W_NO4,gradC,Temperatur X,32,1,st,email
+T_inside,gradC,Temperatur X,20,1,gt,email
+T_Amb,gradC,Temperatur X,17,1,st,email
+T_Service_Bat1,gradC,Temperatur X,30,1,gt,email
+T_Service_Bat2,gradC,Temperatur X,30,1,gt,email
+__U_POWER_IT,V,Spannung Servicebatterie,13.4,0.2,gt,email
+__U_POWER_IT,V,Spannung Servicebatterie,12.4,0.2,st,email
+__U_ADC1,V,Spannung Starterbatterie,12.2,0.2,st,email
+__U_ADC2,V,Spannung Bugstrahlruder,24.0,0.2,st,email
