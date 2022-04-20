@@ -2,8 +2,8 @@ ID,Name,Description,Unit,Filter,TickMax,TickFast,Threshold_Abs,Threshold_Perc
 __U_POWER_IT,U_Service,Batterie Service 12V,V,5,120,5,0.2,5
 __I_POWER_IT,I_IT,Stromaufnahme IT System,mA,5,120,5,350,12
 __P_POWER_IT,P_IT,Leistung IT System,mW,5,120,5,1500,12
-__U_ADC1,U_Starter,Batterie Starter 12V,V,3,120,5,0.1,5
-__U_ADC2,U_BowTruster,Batterie Bugstrahlruder 24V,V,3,120,5,0.1,5
+__U_ADC1,U_BowTruster,Batterie Bugstrahlruder 24V,V,3,120,5,0.1,5
+__U_ADC2,U_Starter,Batterie Starter 12V,V,3,120,5,0.1,5
 __U_ADC3,U_aux1,Spannung aux1,V,3,120,5,0.1,5
 __U_ADC4,U_aux2,Spannung aux2,V,3,120,5,0.1,5
 __ACC_X,ACC_X,Beschleunigung in X,g,4,60,5,0.1,100

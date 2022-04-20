@@ -55,6 +55,21 @@ class AquireData:
     """  
     
     
+    __SCALE_ADC = 10
+    """Skalierung des Spannungsteilers am AD-Wandler Eingang des ADS1115"""
+    
+    __CAL_VALUE_ADC1 = 1.087
+    """Calibrierwert des ADC1 Kanals, da es aufgrund von Toleranzen bei den Widerständen zu Verschiebungen kommen kann"""
+    
+    __CAL_VALUE_ADC2 = 1.087
+    """Calibrierwert des ADC2 Kanals, da es aufgrund von Toleranzen bei den Widerständen zu Verschiebungen kommen kann"""
+    
+    __CAL_VALUE_ADC3 = 1.087
+    """Calibrierwert des ADC3 Kanals, da es aufgrund von Toleranzen bei den Widerständen zu Verschiebungen kommen kann"""
+    
+    __CAL_VALUE_ADC4 = 1.087
+    """Calibrierwert des ADC4 Kanals, da es aufgrund von Toleranzen bei den Widerständen zu Verschiebungen kommen kann"""
+    
     def __init__(self, bus = None):
         """Initialisierung des Datenaquisition Klasse
 
@@ -151,11 +166,13 @@ class AquireData:
                 
         for x in self.data_last_measured:        
             if x.id == "__U_ADC1":
-                self._store_data(x,self.Adc1.getVoltage(),isoTime)
+                self._store_data(x,self.Adc1.getVoltage()*self.__SCALE_ADC * self.__CAL_VALUE_ADC1,isoTime)
             if x.id == "__U_ADC2":
-                self._store_data(x,self.Adc2.getVoltage(),isoTime)
+                self._store_data(x,self.Adc2.getVoltage()*self.__SCALE_ADC * self.__CAL_VALUE_ADC2,isoTime)
             if x.id == "__U_ADC3":
-                self._store_data(x,self.Adc3.getVoltage(),isoTime)
+                self._store_data(x,self.Adc3.getVoltage()*self.__SCALE_ADC * self.__CAL_VALUE_ADC3,isoTime)
+            if x.id == "__U_ADC4":
+                self._store_data(x,self.Adc4.getVoltage()*self.__SCALE_ADC * self.__CAL_VALUE_ADC4,isoTime)
     
     def measure_gyro(self) -> None:
         """Messung der Gyro Werte des MPU6050
