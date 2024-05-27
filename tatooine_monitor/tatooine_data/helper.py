@@ -11,7 +11,7 @@ from configparser import ConfigParser
 # Klasse für die Abspeicherung der Datenpunkte
 from .datapoint import DataPoint
 
-CONF_FILE = "config_channels.csv"
+CONF_FILE = "/opt/tatooinePi/tatooine_monitor/config_channels.csv"
 """Konfigurationsdatei für die Messkanäle als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
 
 CHANNEL_CONFIG_LIST = []

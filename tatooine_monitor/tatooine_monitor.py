@@ -35,7 +35,7 @@ from tatooine_data import Alerting
 #=========================================================================
 
 # Pfad zum ConfigFile des des MonitorProgramms
-TATOOINE_CONF_FILE = "monitor_live.conf"
+TATOOINE_CONF_FILE = "/opt/tatooinePi/tatooine_monitor/monitor_live.conf"
 
 
 # Länge der Hauptschleife

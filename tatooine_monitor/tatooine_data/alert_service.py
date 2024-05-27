@@ -104,7 +104,7 @@ class Alerting:
     _email_limit_reached: bool = False
     """True: die zulässige maximale Anzahl von Mails wurde bereits verendet"""
     
-    CONF_FILE = "config_alerts.csv"
+    CONF_FILE = "/opt/tatooinePi/tatooine_monitor/config_alerts.csv"
     """Konfigurationsdatei für die Alarmsteuerung als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
    
 
