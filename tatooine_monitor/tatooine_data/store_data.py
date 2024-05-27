@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #Schnittstelle zur InfluxDB
-from influxdb import InfluxDBClient
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+
 # Klasse für die Abspeicherung der Datenpinkte
 from .datapoint import DataPoint
 
@@ -64,12 +66,21 @@ class StoreDataToInflux:
         self._db_name = db_name     # name der Datenbank
         self._measurement_name = _measurement_name
         self._tag_location = _tag_location
+        #ToDo in config einbinden
+        self._db_token = "z69ZZvFcWNlj06e-qfsYgtyOoD3gzmBIV49UJ5RzWQU8AmIv0RVYB8YsxgkRBT-EYpfzHAwcStGs4dVe4Sg0sg=="
+        self._db_org = "sv-tatooine"
+        self._bucket = "sensors"
+
 
         # Create the InfluxDB client object
-        self.client = InfluxDBClient(self._db_host, self._db_port,
-                                      self._db_user, self._db_password, 
-                                      self._db_name)   
-        
+        # self.client = InfluxDBClient(self._db_host, self._db_port,
+        #                               self._db_user, self._db_password, 
+        #                               self._db_name) 
+        #ToDO richtig einbinden  
+        self.client = InfluxDBClient(url="http://localhost:8086",
+                                                token=self._db_token,
+                                                org=self._db_org)
+
         # ============================================
         # Konfiguration des Logging
         # ============================================
@@ -87,7 +98,7 @@ class StoreDataToInflux:
         :rtype: bool
         """
         
-        print("Host: {0:s}:{1:s}  -> InfluxDB Version: {2:s}  erfolgreich "\
+        print("Host: {0:s}:{1:s}  -> InfluxDB Version: {2:b}  erfolgreich "\
             "verbunden".format(self._db_host,self._db_port,self.client.ping()))
     
         return True
@@ -154,10 +165,12 @@ class StoreDataToInflux:
 
         if len(json_list) > 0:      
             # Schreibe die Daten in die Datenbank
-            self.client.write_points(json_list) 
+            # self.client.write_points(json_list) 
 
         
-        
-        
+            write_api = self.client.write_api(write_options=SYNCHRONOUS)
+            write_api.write(bucket=self._bucket, record=json_list)
+            print('Data written to influxDB...')
+            write_api.__del__()
     
     
