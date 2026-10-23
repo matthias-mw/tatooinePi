@@ -9,6 +9,7 @@ import re
 
 # Modul zum Multithreading
 import concurrent.futures
+import threading
 
 # Import Logging Modul
 import logging
@@ -79,11 +80,14 @@ class AquireData:
         :type bus: Objekt(smbus), optional
         """        
         self.i2c_bus = bus
+        # Lock für exklusiven I2C-Bus-Zugriff (verhindert Konflikte zwischen Threads)
+        self._i2c_lock = threading.Lock()
         
         # Objekte für die Spannungsmessung anlegen
         self.Adc1 = ADS1115(bus,ADS1115.MUX_AIN0_GND,4.096)
         self.Adc2 = ADS1115(bus,ADS1115.MUX_AIN1_GND,4.096)
         self.Adc3 = ADS1115(bus,ADS1115.MUX_AIN2_GND,4.096)
+        self.Adc4 = ADS1115(bus,ADS1115.MUX_AIN3_GND,4.096)
 
         # Objekt für die Powerüberwachung anlegen
         self.Ina = INA219(self.SHUNT_OHMS,3,1,0x40)
@@ -286,17 +290,33 @@ class AquireData:
         """Zentrale Methode zum Messen aller i2c Sensoren
         
         Die Methode aktualisiert alle Messwerte der verbauten i2c Sensoren.
+        Exklusiver Bus-Zugriff via Lock, einzelne Sensoren mit Fehlerbehandlung.
         
         """        
 
-        #-----------------------------------------------------------------------
-        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-        #-----------------------------------------------------------------------
-        self.measure_power()
-        self.measure_adc()
-        self.measure_gyro()
-        
-        self.measure_gpio()
+        with self._i2c_lock:
+            #-------------------------------------------------------------------
+            # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
+            #-------------------------------------------------------------------
+            try:
+                self.measure_power()
+            except Exception as e:
+                self.logger.error(f"Fehler in measure_power() (INA219): {e}")
+            
+            try:
+                self.measure_adc()
+            except Exception as e:
+                self.logger.error(f"Fehler in measure_adc() (ADS1115): {e}")
+            
+            try:
+                self.measure_gyro()
+            except Exception as e:
+                self.logger.error(f"Fehler in measure_gyro() (MPU6050): {e}")
+            
+            try:
+                self.measure_gpio()
+            except Exception as e:
+                self.logger.error(f"Fehler in measure_gpio() (GPIO): {e}")
         
     def aquire_data_i2c_slow(self) -> None:
         """Zentrale Methode zum Messen aller LANGSAMEN i2c Sensoren
@@ -305,10 +325,14 @@ class AquireData:
         
         """        
 
-        #-----------------------------------------------------------------------
-        # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
-        #-----------------------------------------------------------------------
-        self.measure_baro()
+        with self._i2c_lock:
+            #-------------------------------------------------------------------
+            # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
+            #-------------------------------------------------------------------
+            try:
+                self.measure_baro()
+            except Exception as e:
+                self.logger.error(f"Fehler in measure_baro() (BMP280): {e}")
 
     def aquire_data_1wire(self) -> None:
         """Zentrale Methode zum auslesen aller 1 Wire Sensoren
@@ -319,7 +343,10 @@ class AquireData:
         #-----------------------------------------------------------------------
         # Erfassung der Messwerte und anschließendes Abspeichern in der Historie
         #-----------------------------------------------------------------------
-        self.measure_1wire_ds18s20()
+        try:
+            self.measure_1wire_ds18s20()
+        except Exception as e:
+            self.logger.error(f"Fehler in measure_1wire_ds18s20() (1-Wire): {e}")
                      
                      
     def get_last_data_measured(self) -> DataPoint:

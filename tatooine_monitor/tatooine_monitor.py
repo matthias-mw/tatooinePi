@@ -86,11 +86,23 @@ def main(show = FALSE):
         future_i2c  = concurrent.futures.Future()
         future_i2c_slow  = concurrent.futures.Future()
         
+        def check_future_exception(future, name):
+            """Prüft ob ein Future eine Exception hatte und loggt sie."""
+            if future.done() and not future.cancelled():
+                exc = future.exception()
+                if exc is not None:
+                    logger.error(f"Exception in {name}: {exc}")
+        
         while True:
             
             cnt_i2c +=1
             cnt_i2c_slow +=1
             cnt_1wire +=1
+
+            # Prüfe vorherige Futures auf Exceptions
+            check_future_exception(future_i2c, "aquire_data_i2c")
+            check_future_exception(future_i2c_slow, "aquire_data_i2c_slow")
+            check_future_exception(future_1w, "aquire_data_1wire")
 
             # Bestimmung der Startzeit der Schleife
             start = time.perf_counter()
