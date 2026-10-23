@@ -148,8 +148,12 @@ class AquireData:
                 self._store_data(x,self.Ina.voltage(),isoTime)
             if x.id == "__I_POWER_IT":
                 self._store_data(x,self.Ina.current(),isoTime)
+
+            voltage = self.Ina.voltage()    # einmal auslesen
+            current = self.Ina.current()    # einmal auslesen
             if x.id == "__P_POWER_IT":
-                self._store_data(x,self.Ina.power(),isoTime)
+                # Leistung aus U × I berechnen (V × mA = mW)
+                self._store_data(x, voltage * current, isoTime)
 
 
     def measure_adc(self) -> None:
