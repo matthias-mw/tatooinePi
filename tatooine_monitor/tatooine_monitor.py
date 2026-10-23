@@ -64,7 +64,8 @@ def main(show = FALSE):
  
     # Initialisierunfg der Verbindung zur InfluxDB (V2 API)
     inflDB = StoreDataToInflux(influx_host, influx_port, influx_token, \
-        influx_org, influx_bucket, influx_measurement, influx_tag_location)
+        influx_org, influx_bucket, influx_measurement, influx_tag_location, \
+        influx_developer_mode)
 
     # Initialisierung der Datenerfassung
     data_handle = AquireData(bus)
@@ -181,6 +182,10 @@ if __name__ == '__main__':
     influx_bucket = helper.getConfigValue(Config,"InfluxDB","BUCKET")
     influx_measurement = helper.getConfigValue(Config,"InfluxDB","MEASUREMENT")
     influx_tag_location = helper.getConfigValue(Config,"InfluxDB","TAG_LOCATION")
+    
+    # Developer Mode: true = speichert zusatzliche Debug-Felder in InfluxDB
+    dev_mode_str = helper.getConfigValue(Config,"InfluxDB","DEVELOPER_MODE")
+    influx_developer_mode = (dev_mode_str.lower() == "true")
     
     # Logging
     tatooine_log_file = helper.getConfigValue(Config,"Logging","LOG_FILE")

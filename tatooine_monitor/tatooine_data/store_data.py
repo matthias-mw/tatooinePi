@@ -33,7 +33,8 @@ class StoreDataToInflux:
     
     def __init__(self, host = str("127.0.0.1"), port = int(8086), \
         token = str(""), org = str(""), bucket = str("sensors"), \
-        _measurement_name = 'Signal', _tag_location = 'tatooine') -> None:
+        _measurement_name = 'Signal', _tag_location = 'tatooine', \
+        developer_mode = False) -> None:
         """Initialisierung der Verbindung zu InfluxDB
         
         Es wird ein Client zur InfluxDB angelegt. Die Verbindung erfolgt über
@@ -53,6 +54,10 @@ class StoreDataToInflux:
         :type _measurement_name:  str, optional
         :param _tag_location:     Wert des Location Tags, defaults to 'tatooine'
         :type _tag_location:      str, optional
+        :param developer_mode:    Wenn True, werden zusatzliche Debug-Felder
+                                  (_raw, _dev_abs, _dev_perc, _value_mean)
+                                  in InfluxDB gespeichert. Defaults to False.
+        :type developer_mode:     bool, optional
         
         """
         
@@ -64,6 +69,7 @@ class StoreDataToInflux:
         self._db_token = token      # InfluxDB V2 API Token
         self._db_org = org          # InfluxDB V2 Organisation
         self._bucket = bucket      # InfluxDB V2 Bucket
+        self._developer_mode = developer_mode  # Debug-Felder speichern?
 
         # InfluxDB Client mit V2 API (Token-basiert)
         url = f"http://{self._db_host}:{self._db_port}"
@@ -121,7 +127,8 @@ class StoreDataToInflux:
 
                 # das JSON des aktuellen Kanals inkl. vorletztem Wert anhängen 
                 json_list  += chn.create_json_for_influxDB( \
-                    self._measurement_name,self._tag_location, 2)
+                    self._measurement_name, self._tag_location, 2, \
+                    self._developer_mode)
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0  
                 
@@ -137,7 +144,8 @@ class StoreDataToInflux:
                 
                 # das JSON des aktuellen Kanals anhängen        
                 json_list  += chn.create_json_for_influxDB( \
-                    self._measurement_name, self._tag_location, 1)
+                    self._measurement_name, self._tag_location, 1, \
+                    self._developer_mode)
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
                 chn.act_val_stored_to_db = True

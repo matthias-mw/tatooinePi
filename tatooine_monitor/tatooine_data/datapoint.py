@@ -198,7 +198,7 @@ class   DataPoint():
 
 
     def create_json_for_influxDB(self,measurement = 'signal', location = 'tag',\
-        number_of_points = int(1) ):
+        number_of_points = int(1), developer_mode = False ):
         """Erstellen eines JSON Strings zur Abspeicherung der Daten in influxDB
         
         Mit der Funktion werden alle relevanten Werte so in einen JSON Objekt
@@ -206,7 +206,7 @@ class   DataPoint():
         
         - number_of_points = 1 ... nur der aktuelle, letzte Wert wird ausgegeben
         - number_of_points = 2 ... es wird zusätzlich der vorletzte Wert aus der Historie ausgegeben (dies ist wichtig bei Sprungänderungen, um die Änderung zeitlich auflösen zu können)
-                
+        
         :param measurement: Name des Measurement, defaults to 'Signal'
         :type measurement:  str, optional
         :param location:    Name das Location Tags, defaults to 'tag'
@@ -214,6 +214,10 @@ class   DataPoint():
         :param number_of_points:    Anzahl der Datenpunkte in der JSON Liste,   
                                     defaults to 1
         :type number_of_points:     int, optional 
+        :param developer_mode:      Wenn True, werden zusatzliche Debug-Felder
+                                    (_raw, _dev_abs, _dev_perc, _value_mean)
+                                    gespeichert. Defaults to False.
+        :type developer_mode:       bool, optional
         
         :return:    Ein JSON Eintrag der direkt in InfluxDB 
                     geschrieben werden kann
@@ -239,6 +243,14 @@ class   DataPoint():
                 penultimate_dev_perc = float(penultimate_dev_abs / \
                     self.value_mean * 100)
             
+            # Fields aufbauen: Hauptwert immer, Debug-Felder nur im Developer Mode
+            fields = {self.name: float(penultimate_val)}
+            if developer_mode:
+                fields[self.name + "_raw"] = float(penultimate_val)
+                fields[self.name + "_dev_abs"] = float(penultimate_dev_abs)
+                fields[self.name + "_dev_perc"] = float(penultimate_dev_perc)
+                fields[self.name + "_value_mean"] = float(self.value_mean)
+            
             #Erstellung des JSON
             json_data += [
             {
@@ -247,18 +259,20 @@ class   DataPoint():
                         "location": location,
                     },
                     "time": datetime.fromtimestamp(timestamp,tz_berlin),
-                    "fields": {
-                        self.name:      float(penultimate_val),
-                        self.name + "_raw":    float(penultimate_val),
-                        self.name + "_dev_abs":    float(penultimate_dev_abs),
-                        self.name + "_dev_perc":   float(penultimate_dev_perc),
-                        self.name + "_value_mean": float(self.value_mean)
-                    }
+                    "fields": fields
                 }
             ]
             
             self.logger.debug(f"Doppelabspeicherung von {self.name}")
        
+        # Fields aufbauen: Hauptwert immer, Debug-Felder nur im Developer Mode
+        fields = {self.name: float(self.value)}
+        if developer_mode:
+            fields[self.name + "_raw"] = float(self.value_raw)
+            fields[self.name + "_dev_abs"] = float(self.value_dev_abs)
+            fields[self.name + "_dev_perc"] = float(self.value_dev_perc)
+            fields[self.name + "_value_mean"] = float(self.value_mean)
+        
         # Erzeuge JSON Datenstruktur passend zu InfluxDB für den aktuellen 
         # Messwert
         json_data += [
@@ -268,13 +282,7 @@ class   DataPoint():
                   "location": location,
               },
               "time": datetime.fromtimestamp(self.timestamp,tz_berlin),
-              "fields": {
-                  self.name:      float(self.value),
-                  self.name + "_raw":       float(self.value_raw),
-                  self.name + "_dev_abs":    float(self.value_dev_abs),
-                  self.name + "_dev_perc":   float(self.value_dev_perc),
-                  self.name + "_value_mean": float(self.value_mean)
-              }
+              "fields": fields
           }
         ]
         
