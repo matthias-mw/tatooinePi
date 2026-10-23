@@ -205,7 +205,7 @@ class   DataPoint():
         zusammengestellt, dass sie direkt in InfluxDB geschrieben werden können. Über den Parameter 'number_of_points' kann die Anzahl der ausgegeben Datensätze bestimmt werden.
         
         - number_of_points = 1 ... nur der aktuelle, letzte Wert wird ausgegeben
-        - number_of_points = 2 ... es wird zusätzlich der vorletzte Wert aus der Historie ausgegeben
+        - number_of_points = 2 ... es wird zusätzlich der vorletzte Wert aus der Historie ausgegeben (dies ist wichtig bei Sprungänderungen, um die Änderung zeitlich auflösen zu können)
                 
         :param measurement: Name des Measurement, defaults to 'Signal'
         :type measurement:  str, optional

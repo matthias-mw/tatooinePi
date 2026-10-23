@@ -23,63 +23,51 @@ class StoreDataToInflux:
     """Hostadresse der InfluxDB"""
     _db_port = 8086
     """Port der InfluxDB auf dem Host '_db_host' """
-    _db_user = "admin"
-    """Username zum einloggen an der InfluxDB"""
-    _db_password = "admin"
-    """Passwort zum einloggen an der InfluxDB"""
-    _db_name = "database"
-    """Name der Datenbank die verwendet werden soll"""
-    
     _measurement_name = 'Signal'
-    """Name des Mesurements in der InfluxDB"""
+    """Name des Measurements in der InfluxDB"""
     _tag_location = 'tatooine'
     """Wert des Tags 'location' in der InfluxDB"""
     
     client = None
     """Object des InfluxDB Clients"""
     
-    def __init__(self,host = str ("127.0.0.1"), port = int (8086), user = \
-        str("admin"), password = str("admin"), db_name = "sensors" , \
-            _measurement_name = 'Signal', _tag_location = 'tatooine') -> None:
-        """Initialisierung des Verbindung zu InfluxDB
+    def __init__(self, host = str("127.0.0.1"), port = int(8086), \
+        token = str(""), org = str(""), bucket = str("sensors"), \
+        _measurement_name = 'Signal', _tag_location = 'tatooine') -> None:
+        """Initialisierung der Verbindung zu InfluxDB
         
-        Es wird ein Client zur InfluxDB angelegt.
+        Es wird ein Client zur InfluxDB angelegt. Die Verbindung erfolgt über
+        die InfluxDB V2 API (Token-basiert).
 
-        :param host:    Hostname der InfluxDB, defaults to str("127.0.0.1")
-        :type host:     str, optional
-        :param port:    Port der InfluxDB, defaults to int(8086)
-        :type port:     int, optional
-        :param user:    user der angemeldet werden soll, defaults to "admin"
-        :type user:     str, optional
-        :param password:    Passwort, defaults to "admin"
-        :type password:     str, optional
-        :param db_name:     Name der Datenbank, defaults to "sensors"
-        :type db_name:      str, optional
+        :param host:        Hostname der InfluxDB, defaults to "127.0.0.1"
+        :type host:         str, optional
+        :param port:        Port der InfluxDB, defaults to 8086
+        :type port:         int, optional
+        :param token:       InfluxDB V2 API Token, defaults to ""
+        :type token:        str, optional
+        :param org:         InfluxDB V2 Organisation, defaults to ""
+        :type org:          str, optional
+        :param bucket:      InfluxDB V2 Bucket, defaults to "sensors"
+        :type bucket:       str, optional
+        :param _measurement_name: Name des Measurements, defaults to 'Signal'
+        :type _measurement_name:  str, optional
+        :param _tag_location:     Wert des Location Tags, defaults to 'tatooine'
+        :type _tag_location:      str, optional
         
         """
         
-        # Konfiguration der InfluxDatenbank
+        # Konfiguration der InfluxDB
         self._db_host = host        # IP der Datenbank
-        self._db_port = port        # default port
-        self._db_user = user        # the user/password created for influxdb
-        self._db_password = password 
-        self._db_name = db_name     # name der Datenbank
+        self._db_port = port        # Port
         self._measurement_name = _measurement_name
         self._tag_location = _tag_location
-        #ToDo in config einbinden
-        self._db_token = "z69ZZvFcWNlj06e-qfsYgtyOoD3gzmBIV49UJ5RzWQU8AmIv0RVYB8YsxgkRBT-EYpfzHAwcStGs4dVe4Sg0sg=="
-        self._db_org = "sv-tatooine"
-        self._bucket = "sensors"
+        self._db_token = token      # InfluxDB V2 API Token
+        self._db_org = org          # InfluxDB V2 Organisation
+        self._bucket = bucket      # InfluxDB V2 Bucket
 
-
-        # Create the InfluxDB client object
-        # self.client = InfluxDBClient(self._db_host, self._db_port,
-        #                               self._db_user, self._db_password, 
-        #                               self._db_name) 
-        #ToDO richtig einbinden  
-        self.client = InfluxDBClient(url="http://localhost:8086",
-                                                token=self._db_token,
-                                                org=self._db_org)
+        # InfluxDB Client mit V2 API (Token-basiert)
+        url = f"http://{self._db_host}:{self._db_port}"
+        self.client = InfluxDBClient(url=url, token=self._db_token, org=self._db_org)
 
         # ============================================
         # Konfiguration des Logging

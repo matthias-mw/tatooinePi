@@ -62,9 +62,9 @@ def main(show = FALSE):
     # Konfiguration der Messkanäle
     helper.config_channels()
  
-    # Initialisierunfg der Verbindung zur InfluxDB
-    inflDB = StoreDataToInflux(influx_host, influx_port, influx_admin, \
-        influx_passwort,influx_db_name,influx_measurement,influx_tag_location)
+    # Initialisierunfg der Verbindung zur InfluxDB (V2 API)
+    inflDB = StoreDataToInflux(influx_host, influx_port, influx_token, \
+        influx_org, influx_bucket, influx_measurement, influx_tag_location)
 
     # Initialisierung der Datenerfassung
     data_handle = AquireData(bus)
@@ -173,12 +173,12 @@ if __name__ == '__main__':
 
     print(Config.sections())
 
-    #Zugangsdaten INFLUX_DB auf gleichem Raspberry
+    #Zugangsdaten INFLUX_DB (V2 API - Token-basiert)
     influx_host = helper.getConfigValue(Config,"InfluxDB","HOST")
     influx_port = helper.getConfigValue(Config,"InfluxDB","PORT")
-    influx_admin = helper.getConfigValue(Config,"InfluxDB","ADMIN")
-    influx_passwort = helper.getConfigValue(Config,"InfluxDB","PASSWORT")
-    influx_db_name = helper.getConfigValue(Config,"InfluxDB","DB_NAME")
+    influx_token = helper.getConfigValue(Config,"InfluxDB","TOKEN")
+    influx_org = helper.getConfigValue(Config,"InfluxDB","ORG")
+    influx_bucket = helper.getConfigValue(Config,"InfluxDB","BUCKET")
     influx_measurement = helper.getConfigValue(Config,"InfluxDB","MEASUREMENT")
     influx_tag_location = helper.getConfigValue(Config,"InfluxDB","TAG_LOCATION")
     
