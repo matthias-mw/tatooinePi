@@ -129,6 +129,7 @@ python3 tatooine_monitor.py [Optionen]
 | Option | Wirkung |
 |---|---|
 | `-c`, `--config <datei>` | Konfigurationsdatei auswählen (Default: `monitor_live.conf`) |
+| `-t`, `--testemail` | Test-Alarm-E-Mail über den SMTP-Pfad versenden und Programm beenden |
 | `-v`, `--version` | Programmversion anzeigen |
 | `-d`, `--debug` | Debug-Logging aktivieren |
 | `-s`, `--show` | Live-Ausgabe der aktuellen Messwerte auf stdout |

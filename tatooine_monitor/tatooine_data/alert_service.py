@@ -385,14 +385,46 @@ class Alerting:
             smtpObj.set_debuglevel(0)
             # Wenn der Server eine Authentifizierung benötigt dann...
             smtpObj.starttls()
-            smtpObj.login(self.__USERNAME, self.__PASSWORD)
+            smtpObj.login(self.__SMTP_USERNAME, self.__SMTP_PASSWORD)
             # absenden der E-Mail
             smtpObj.sendmail(self.__EMAIL_SENDER, self.__EMAIL_RECIEVER, msg.as_string())
 
             self.logger.info(f"Alarm-EMail versendet.")
             self.logger.debug(f"Alarm-EMail Config: {self.__SMTP_SERVER} {self.__SMTP_PORT} {msg['To']} -> {txt}")
-        
-        
+
+    def send_test_email(self) -> None:
+        """Versendet eine Test-Alarm-E-Mail
+
+        Sendet eine einzelne Test-E-Mail über den konfigurierten SMTP-Server,
+        unabhängig vom E-Mail-Tageslimit und Debouncing (z.B. zum Prüfen der
+        Zugangsdaten via -t/--testemail).
+
+        :raises Exception: wenn der Versand fehlschlägt
+        """
+
+        subject = "TEST-Alarm: TatooineMonitor"
+        body = ("<!DOCTYPE html><html><body>"
+                "<h2>Test-Alarmmeldung</h2>"
+                "<p>Dies ist eine Test-E-Mail des TatooineMonitor (ausgelöst über "
+                "-t/--testemail). Wenn du diese Mail erhältst, funktioniert der "
+                "SMTP-Versand inklusive Zugangsdaten.</p>"
+                "</body></html>")
+
+        msg = MIMEMultipart()
+        msg['Subject'] = subject
+        msg['From'] = self.__EMAIL_SENDER
+        msg['To'] = self.__EMAIL_RECIEVER
+        msg.attach(MIMEText(body, 'html'))
+
+        smtpObj = smtplib.SMTP(self.__SMTP_SERVER, self.__SMTP_PORT)
+        smtpObj.starttls()
+        smtpObj.login(self.__SMTP_USERNAME, self.__SMTP_PASSWORD)
+        smtpObj.sendmail(self.__EMAIL_SENDER, self.__EMAIL_RECIEVER, msg.as_string())
+        smtpObj.quit()
+
+        self.logger.info(f"Test-Alarm-E-Mail versendet an {self.__EMAIL_RECIEVER}")
+        print("Test-Alarm-E-Mail versendet an " + self.__EMAIL_RECIEVER)
+
     def msg_html(self, current_data_list: list[DataPoint], add_text: str) -> str:
         """Erstellung einer Alarmmeldung in HTML Format
         

@@ -263,6 +263,8 @@ if __name__ == '__main__':
         über stdout", action="store_true")
     parser.add_argument("-c", "--config", default=TATOOINE_CONF_FILE, \
         help="Pfad zur Konfigurationsdatei (Default: %(default)s)")
+    parser.add_argument("-t", "--testemail", help="Test-Alarm-E-Mail \
+        versenden und Programm beenden", action="store_true")
     args = parser.parse_args()
     
     # Ausgabe der übergebenen Argumente
@@ -309,7 +311,19 @@ if __name__ == '__main__':
     logger.info('=============================================================')
     logger.info('Python-Script für den TatooineMonitor neu gestartet')
     logger.info('=============================================================')
-    
+
+    # Test-Alarm-E-Mail versenden und Programm beenden
+    if args.testemail:
+        print("Sende Test-Alarm-E-Mail...")
+        try:
+            alert_test = Alerting(Config, TATOOINE_CONF_DIR)
+            alert_test.send_test_email()
+        except Exception as e:
+            logger.error(f"Test-Alarm-E-Mail fehlgeschlagen: {e}")
+            print("FEHLER: Test-Alarm-E-Mail konnte nicht versendet werden: " + str(e))
+            sys.exit(1)
+        sys.exit(0)
+
     # Starten der Main Loop
     main(showData)
         
