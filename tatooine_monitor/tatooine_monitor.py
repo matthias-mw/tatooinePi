@@ -38,6 +38,10 @@ from tatooine_data import Alerting
 # (wird verwendet, wenn kein -c/--config Argument übergeben wird)
 TATOOINE_CONF_FILE = "/opt/tatooinePi/tatooine_monitor/monitor_live.conf"
 
+# Verzeichnis der verwendeten Konfigurationsdatei (wird in __main__ gesetzt).
+# Alle weiteren Configs (config_channels.csv, config_alerts.csv, .env) liegen dort
+TATOOINE_CONF_DIR = ""
+
 
 # Länge der Hauptschleife
 MAIN_LOOP_LENGHT_MS = 250
@@ -61,7 +65,7 @@ bus = smbus2.SMBus(1)
 def main(show = FALSE):
     
     # Konfiguration der Messkanäle
-    helper.config_channels()
+    helper.config_channels(TATOOINE_CONF_DIR)
  
     # Initialisierunfg der Verbindung zur InfluxDB (V2 API)
     inflDB = StoreDataToInflux(influx_host, influx_port, influx_token, \
@@ -196,10 +200,24 @@ if __name__ == '__main__':
 
     print(Config.sections())
 
+    # Verzeichnis der conf bestimmen (CSV-Configs und .env liegen dort)
+    tatooine_conf_dir = os.path.dirname(os.path.abspath(tatooine_conf_file))
+    TATOOINE_CONF_DIR = tatooine_conf_dir
+
+    # Zugangsdaten aus .env laden (liegt im selben Verzeichnis wie die conf);
+    # bereits gesetzte Umgebungsvariablen haben Vorrang vor der .env
+    env_file = os.path.join(tatooine_conf_dir, ".env")
+    if os.path.isfile(env_file):
+        n_env = helper.load_env_file(env_file)
+        print(f"{n_env} Variablen aus .env geladen: {env_file}")
+    else:
+        print(f"Hinweis: keine .env gefunden ({env_file}) - Secrets müssen über die Umgebung gesetzt sein")
+
     #Zugangsdaten INFLUX_DB (V2 API - Token-basiert)
     influx_host = helper.getConfigValue(Config,"InfluxDB","HOST")
     influx_port = helper.getConfigValue(Config,"InfluxDB","PORT")
-    influx_token = helper.getConfigValue(Config,"InfluxDB","TOKEN")
+    # Token kommt aus .env/Umgebung (INFLUXDB_TOKEN), Fallback: conf
+    influx_token = helper.get_secret("INFLUXDB_TOKEN", Config, "InfluxDB", "TOKEN")
     influx_org = helper.getConfigValue(Config,"InfluxDB","ORG")
     influx_bucket = helper.getConfigValue(Config,"InfluxDB","BUCKET")
     influx_measurement = helper.getConfigValue(Config,"InfluxDB","MEASUREMENT")

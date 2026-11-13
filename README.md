@@ -79,6 +79,27 @@ python3 tatooine_monitor.py -c /opt/tatooinePi/tatooine_monitor/monitor_simu.con
 Wird eine angegebene Datei nicht gefunden oder kann nicht geparst werden,
 bricht das Programm mit einer Fehlermeldung und Exit-Code 1 ab.
 
+### Zugangsdaten (.env)
+
+Secrets (InfluxDB-Token, SMTP-Zugangsdaten) stehen **nicht** mehr in den
+conf-Dateien oder im Code, sondern in einer `.env`-Datei im selben
+Verzeichnis wie die verwendete conf:
+
+```
+INFLUXDB_TOKEN=<InfluxDB V2 API Token>
+SMTP_USERNAME=<SMTP Benutzername>
+SMTP_PASSWORD=<SMTP Passwort>
+```
+
+Vorlage siehe `.env_example`. Die `.env` wird über `.gitignore` nicht in git
+eingecheckt. Beim Start werden die Variablen aus der `.env` geladen; eine
+bereits gesetzte Umgebungsvariable hat Vorrang. Fehlt ein Secret, bricht das
+Programm mit Fehlermeldung ab.
+
+`config_channels.csv` und `config_alerts.csv` werden ebenfalls aus dem
+Verzeichnis der gewählten conf gelesen — Live- und Simu-System können also
+jeweils eigene CSVs im eigenen Verzeichnis liegen haben.
+
 ### Sektionen der .conf-Datei
 
 | Sektion | Inhalt |

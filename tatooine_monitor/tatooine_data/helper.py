@@ -11,13 +11,13 @@ from configparser import ConfigParser
 # Klasse für die Abspeicherung der Datenpunkte
 from .datapoint import DataPoint
 
-CONF_FILE = "/opt/tatooinePi/tatooine_monitor/config_channels.csv"
-"""Konfigurationsdatei für die Messkanäle als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
+DEFAULT_CONF_DIR = "/opt/tatooinePi/tatooine_monitor"
+"""Standard-Verzeichnis der Konfigurationsdateien (config_channels.csv, config_alerts.csv, .env)"""
 
 CHANNEL_CONFIG_LIST = []
 """Liste mit allen Messkanälen und Ihren Eigenschaften :doc:`config_channels` """
 
-def config_channels():
+def config_channels(conf_dir: str = DEFAULT_CONF_DIR):
     """Konfiguartion aller Messkanäle
     
     Zu Beginn des Programms wird die Datei :file:`config_channels.csv` gelesen. 
@@ -27,9 +27,14 @@ def config_channels():
     
     """    
      
+    conf_file = os.path.join(conf_dir, "config_channels.csv")
+    if not os.path.isfile(conf_file):
+        print(f"FEHLER: Kanalkonfiguration nicht gefunden: {conf_file}")
+        sys.exit(1)
+
     # Sicheres öffnen der CSV Datei, welche durch With automatisch
     # nach Beendigung des Auslesen geschlossen wird
-    with open(CONF_FILE) as csvdatei:
+    with open(conf_file) as csvdatei:
         
         # Auslesen der Daten aus der CSV
         csv_reader_object = csv.reader(csvdatei)
@@ -111,7 +116,69 @@ def getConfigValue (config: ConfigParser, section: str , key: str):
     sys.exit("Programmabbruch wegen Configfehler")
     
     return None
-    
+
+
+def load_env_file(env_path: str) -> int:
+    """Lädt Zugangsdaten aus einer .env Datei in die Umgebungsvariablen
+
+    Format pro Zeile: KEY=VALUE (# Kommentare und leere Zeilen werden ignoriert).
+    Bereits vorhandene Umgebungsvariablen werden nicht überschrieben.
+
+    :param env_path: Pfad zur .env Datei
+    :type env_path: str
+    :return: Anzahl der neu gesetzten Variablen
+    :rtype: int
+    """
+    count = 0
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+                count += 1
+    return count
+
+
+def get_secret(env_name: str, config: ConfigParser = None, \
+               section: str = None, key: str = None) -> str:
+    """Liest ein Secret (Token, Passwort) aus der Umgebung / .env
+
+    Vorrang hat die Umgebungsvariable env_name (ggf. aus .env geladen).
+    Fallback: Eintrag key in section der conf-Datei (Legacy).
+    Ist nirgends ein Wert gesetzt, wird das Programm mit Fehlermeldung beendet.
+
+    :param env_name: Name der Umgebungsvariable
+    :type env_name: str
+    :param config: Config Object, defaults to None
+    :type config: ConfigParser, optional
+    :param section: Abschnitt in der Conf, defaults to None
+    :type section: str, optional
+    :param key: Schlüssel in der Conf, defaults to None
+    :type key: str, optional
+    :return: Wert des Secrets
+    :rtype: str
+    """
+    value = os.environ.get(env_name, "").strip()
+    if value:
+        return value
+
+    if config is not None and section is not None and key is not None:
+        try:
+            value = config.get(section, key).strip()
+        except Exception:
+            value = ""
+        if value:
+            return value
+
+    print(f"FEHLER: Secret '{env_name}' nicht gefunden (weder Umgebungsvariable/.env noch conf [{section}] {key})!")
+    sys.exit("Programmabbruch wegen fehlendem Secret")
+
+
 def getFolderSize (folder: str, unit = "mb"):
     """Ausgabe der Größe eines Verzeichnisses
     

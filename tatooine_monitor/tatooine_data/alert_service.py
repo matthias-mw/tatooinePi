@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # Modul zur Bearbeitung der Zeitstempel
-from ast import Str
 from datetime import date, datetime
 
 # Modul zur Verarbeitung von CSV Dateien
@@ -58,12 +57,9 @@ class Alerting:
     __EMAIL_RECIEVER = ""
     """Empfängeradresse für die E-Mails"""
 
-    #ToDo Daten verschlüsseln
-    __USERNAME = "info@sv-tatooine.com"
-    """Benutzername für den Zugang zum E-Mail Provider"""
-    __PASSWORD = "0815TaMaPw"
-    """Benutzerkennwort für den Zugang zum E-Mail Provider"""
-    
+    # SMTP Zugangsdaten (__SMTP_USERNAME/__SMTP_PASSWORD) werden in __init__
+    # aus .env/Umgebung gelesen (SMTP_USERNAME, SMTP_PASSWORD) - nicht im Code!
+
     DEBOUNCE_EMAIL_ALARM_S  = 5
     """Zeitverzögerung nach dem Auftreten des Alarms, bis die E-Mail 
     versendet wird. Damit soll die Chance eingeräumt werden ggf noch 
@@ -104,13 +100,15 @@ class Alerting:
     _email_limit_reached: bool = False
     """True: die zulässige maximale Anzahl von Mails wurde bereits verendet"""
     
-    CONF_FILE = "/opt/tatooinePi/tatooine_monitor/config_alerts.csv"
-    """Konfigurationsdatei für die Alarmsteuerung als csv mit der Bezeichnung der Eigenschaft in der ersten Zeile"""
-   
+    DEFAULT_CONF_DIR = "/opt/tatooinePi/tatooine_monitor"
+    """Standard-Verzeichnis der Konfigurationsdateien"""
 
 
-    def __init__(self, conf: ConfigParser):
-        
+    def __init__(self, conf: ConfigParser, conf_dir: str = DEFAULT_CONF_DIR):
+
+        # config_alerts.csv liegt im selben Verzeichnis wie die conf
+        self.CONF_FILE = os.path.join(conf_dir, "config_alerts.csv")
+
         # ============================================
         # Einstellungen aus confFile übernehmen
         # ============================================
@@ -124,8 +122,12 @@ class Alerting:
             "ALERTING", "DEBOUNCE_EMAIL_BETWEEN_ALARM_S"))
         self.EMAIL_LIMIT_PER_DAY = int(helper.getConfigValue(conf,"ALERTING",\
             "EMAIL_LIMIT_PER_DAY"))
-        
-        
+
+        # SMTP Zugangsdaten kommen aus .env/Umgebung (nicht im Repo!)
+        self.__SMTP_USERNAME = helper.get_secret("SMTP_USERNAME")
+        self.__SMTP_PASSWORD = helper.get_secret("SMTP_PASSWORD")
+
+
         # ============================================
         # Konfiguration des Logging
         # ============================================
@@ -152,6 +154,10 @@ class Alerting:
         
         """    
         
+        if not os.path.isfile(self.CONF_FILE):
+            print(f"FEHLER: Alarmkonfiguration nicht gefunden: {self.CONF_FILE}")
+            sys.exit(1)
+
         # Sicheres öffnen der CSV Datei, welche durch With automatisch
         # nach Beendigung des Auslesen geschlossen wird
         with open(self.CONF_FILE) as csvdatei:
@@ -387,7 +393,7 @@ class Alerting:
             self.logger.debug(f"Alarm-EMail Config: {self.__SMTP_SERVER} {self.__SMTP_PORT} {msg['To']} -> {txt}")
         
         
-    def msg_html(self, current_data_list: list[DataPoint], add_text: str) -> Str:
+    def msg_html(self, current_data_list: list[DataPoint], add_text: str) -> str:
         """Erstellung einer Alarmmeldung in HTML Format
         
         Diese Funktion erstellt eine Alarmmeldung im HTML Format. Dabei wird 
