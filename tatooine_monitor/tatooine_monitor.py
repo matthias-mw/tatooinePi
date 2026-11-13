@@ -34,7 +34,8 @@ from tatooine_data import Alerting
 # Konfiguration 
 #=========================================================================
 
-# Pfad zum ConfigFile des des MonitorProgramms
+# Standard-Pfad zum ConfigFile des MonitorProgramms
+# (wird verwendet, wenn kein -c/--config Argument übergeben wird)
 TATOOINE_CONF_FILE = "/opt/tatooinePi/tatooine_monitor/monitor_live.conf"
 
 
@@ -168,9 +169,30 @@ if __name__ == '__main__':
     # ==================================================
     # Auslesen des Config Files
     # ==================================================
+    # Vorab-Parser zur Auswahl der Konfigurationsdatei (-c/--config)
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("-c", "--config", default=TATOOINE_CONF_FILE)
+    pre_args, _ = pre_parser.parse_known_args()
+    tatooine_conf_file = pre_args.config
+
     # Einlesen des COnfigfiles
+    print("Verwendete Konfigurationsdatei: " + tatooine_conf_file)
+    if not os.path.isfile(tatooine_conf_file):
+        print("FEHLER: Konfigurationsdatei nicht gefunden: " + tatooine_conf_file)
+        sys.exit(1)
+
     Config = ConfigParser()
-    Config.read(TATOOINE_CONF_FILE)
+    try:
+        files_read = Config.read(tatooine_conf_file)
+    except Exception as e:
+        print("FEHLER: Konfigurationsdatei konnte nicht geparst werden: " \
+            + tatooine_conf_file + " (" + str(e) + ")")
+        sys.exit(1)
+
+    if tatooine_conf_file not in files_read:
+        print("FEHLER: Konfigurationsdatei konnte nicht gelesen werden: " \
+            + tatooine_conf_file)
+        sys.exit(1)
 
     print(Config.sections())
 
@@ -221,6 +243,8 @@ if __name__ == '__main__':
         für Logging", action="store_true")
     parser.add_argument("-s", "--show", help="Anzeige der aktuellen Werte \
         über stdout", action="store_true")
+    parser.add_argument("-c", "--config", default=TATOOINE_CONF_FILE, \
+        help="Pfad zur Konfigurationsdatei (Default: %(default)s)")
     args = parser.parse_args()
     
     # Ausgabe der übergebenen Argumente
