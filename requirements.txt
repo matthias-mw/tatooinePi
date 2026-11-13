@@ -1,3 +1,9 @@
-influxdb
+# Python-Abhängigkeiten für tatooine_monitor
+# Installation direkt auf dem Raspberry Pi ausführen:
+#   python3 -m venv tatooine_monitor/venv
+#   tatooine_monitor/venv/bin/pip install -r requirements.txt
+influxdb-client
 bmp280
 smbus2
+RPi.GPIO
+Adafruit-GPIO
