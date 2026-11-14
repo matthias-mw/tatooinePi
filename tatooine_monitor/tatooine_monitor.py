@@ -332,7 +332,6 @@ if __name__ == '__main__':
     logger.addHandler(file_handler)
 
     # LogLevel für importierte Module
-    logging.getLogger("Adafruit_I2C.Device.Bus.1.Address.0X40").setLevel(logging.INFO)
     logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
 
     # Logging

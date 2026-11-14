@@ -91,11 +91,11 @@ class AquireData:
         # Objekt für die Powerüberwachung anlegen und einmalig konfigurieren
         # (der INA219 behält das Config-Register, ein configure() pro
         # Messzyklus ist nicht nötig)
-        self.Ina = INA219(self.SHUNT_OHMS,3,1,0x40)
+        self.Ina = INA219(self.SHUNT_OHMS,3,1,0x40, smbus=bus)
         self.Ina.configure()
 
-        # Objekt für den MPU6050 anlegen
-        self.mpu = mpu6050(0x68)
+        # Objekt für den MPU6050 anlegen (gemeinsamer smbus2-Bus)
+        self.mpu = mpu6050(0x68, bus)
 
         # Objekt für den 1-Wire Bus anlegen
         self.one_wire = OneWire()

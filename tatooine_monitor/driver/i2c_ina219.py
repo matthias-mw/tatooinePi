@@ -10,7 +10,31 @@ Der INA219 Sensor ist ein Baustein von Texas Instruments, welche Strom, Spannung
 import logging
 import time
 from math import trunc
-import Adafruit_GPIO.I2C as I2C
+
+
+class _Smbus2Adapter:
+    """Adapter, damit der INA219-Treiber mit einem smbus2-Busobjekt arbeitet.
+
+    Bildet die Adafruit_GPIO-I2C-Methoden auf smbus2 ab. Die 16-Bit-Register
+    des INA219 sind big-endian (erstes Byte auf dem Bus = MSB).
+    """
+
+    def __init__(self, bus, address):
+        self._bus = bus
+        self._address = address
+
+    def writeList(self, register, register_bytes):
+        self._bus.write_i2c_block_data(self._address, register, register_bytes)
+
+    def readU16BE(self, register):
+        data = self._bus.read_i2c_block_data(self._address, register, 2)
+        return (data[0] << 8) | data[1]
+
+    def readS16BE(self, register):
+        value = self.readU16BE(register)
+        if value >= 0x8000:
+            value -= 0x10000
+        return value
 
 
 class INA219:
@@ -97,7 +121,7 @@ class INA219:
 
     def __init__(self, shunt_ohms, max_expected_amps=None,
                  busnum=None, address=__ADDRESS,
-                 log_level=logging.ERROR):
+                 log_level=logging.ERROR, smbus=None):
         """Construct the class.
 
         Pass in the resistance of the shunt resistor and the maximum expected
@@ -118,7 +142,13 @@ class INA219:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
 
-        self._i2c = I2C.get_i2c_device(address=address, busnum=busnum)
+        if smbus is not None:
+            # gemeinsames smbus2-Busobjekt verwenden (einheitlicher I2C-Stack)
+            self._i2c = _Smbus2Adapter(smbus, address)
+        else:
+            # Fallback: Adafruit_GPIO (lazy import - smbus2 allein reicht sonst)
+            import Adafruit_GPIO.I2C as I2C
+            self._i2c = I2C.get_i2c_device(address=address, busnum=busnum)
         self._shunt_ohms = shunt_ohms
         self._max_expected_amps = max_expected_amps
         self._min_device_current_lsb = self._calculate_min_current_lsb()

@@ -6,4 +6,3 @@ influxdb-client
 bmp280
 smbus2
 RPi.GPIO
-Adafruit-GPIO
