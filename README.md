@@ -69,11 +69,16 @@ Aktivieren zum manuellen Arbeiten: `source /opt/tatooinePi/tatooine_monitor/venv
 ## Dokumentation (Sphinx)
 
 Die API-Doku liegt in `docs/` und wird aus den Docstrings per Sphinx gebaut
-(nicht auf dem Pi nötig, eigene Abhängigkeiten in `docs/requirements.txt`):
+(nicht auf dem Pi nötig, eigene Abhängigkeiten in `docs/requirements.txt`).
+Doku-Build auf dem Entwicklungsrechner (z.B. barbuda) in eigener venv
+`venv-docs` im Repo-Root (gitignored, nicht zu verwechseln mit `.venv`
+oder der Pi-venv `tatooine_monitor/venv-monitor`):
 
 ```bash
+python3 -m venv venv-docs
+source venv-docs/bin/activate
+pip install -r docs/requirements.txt
 cd docs
-pip install -r requirements.txt
 make html        # Ausgabe: docs/_build/html/index.html
 ```
 
