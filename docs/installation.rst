@@ -12,11 +12,12 @@ Voraussetzungen
 * Aktivierte Schnittstellen (einmalig über ``sudo raspi-config``):
 
   * *Interface Options → I2C* aktivieren (ergibt ``/dev/i2c-1``)
-  * *Interface Options → 1-Wire* aktivieren (ergibt ``/sys/bus/w1/devices``)
+  * *Interface Options → 1-Wire* aktivieren (ergibt ``/sys/bus/w1/devices``);
+    Datenpin GPIO4 auf dem LIVE-Pi, GPIO22 auf dem Simu-Pi — siehe Fußnote in :doc:`hardware`
 
 * InfluxDB 2.x, lokal auf dem Pi erreichbar (``127.0.0.1:8086``)
 * SMTP-Postfach für den Alarm-Mail-Versand (z. B. beim Webhoster)
-* Angeschlossene Sensoren gemäß :doc:`architektur`
+* Angeschlossene Sensoren gemäß :doc:`hardware` (Schaltplan als PDF in der Doku)
 
 Schritt 1: Schnittstellen prüfen
 --------------------------------

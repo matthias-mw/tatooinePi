@@ -69,6 +69,7 @@ Inhalt
    betrieb
    konfiguration
    architektur
+   hardware
    tatooine_data
    alerting
    driver
