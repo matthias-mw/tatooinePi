@@ -1,8 +1,11 @@
-# Python-Abhängigkeiten für tatooine_monitor
-# Installation direkt auf dem Raspberry Pi ausführen:
-#   python3 -m venv tatooine_monitor/venv
-#   tatooine_monitor/venv/bin/pip install -r requirements.txt
+# Python-Abhängigkeiten für tatooine_monitor (Runtime, nur Pi)
+# Installation direkt auf dem Raspberry Pi:
+#   cd /opt/tatooinePi/tatooine_monitor
+#   python3 -m venv venv-monitor
+#   ./venv-monitor/bin/pip install -r ../requirements.txt
+# Doku-Build (Sphinx) liegt separat in docs/requirements.txt
 influxdb-client
+pytz
 bmp280
 smbus2
 RPi.GPIO

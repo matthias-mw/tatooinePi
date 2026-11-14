@@ -7,7 +7,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 /opt/tatooinePi/tatooine_monitor/tatooine_monitor.py
+ExecStart=/opt/tatooinePi/tatooine_monitor/venv-monitor/bin/python /opt/tatooinePi/tatooine_monitor/tatooine_monitor.py
 
 [Install]
 WantedBy=multi-user.target

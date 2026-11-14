@@ -47,15 +47,35 @@ tatooinePi/
 Voraussetzungen auf dem Raspberry Pi: Python 3, aktivierte I2C- und
 1-Wire-Schnittstellen (`raspi-config`), InfluxDB 2.x lokal erreichbar.
 
+Deployment auf dem Live-System nach `/opt/tatooinePi/` (die Programme
+erwarten die Konfigurationsdateien unter diesem Pfad). Das venv liegt
+**auf dem Pi neben dem Code** unter `/opt/tatooinePi/tatooine_monitor/venv-monitor`
+(Name bewusst nicht `.venv`/`venv`, damit es nicht mit anderen venvs kollidiert;
+über `.gitignore` nicht in git). Im Repo liegt nur die `requirements.txt`:
+
 ```bash
-# Abhängigkeiten installieren (im venv, direkt auf dem Raspberry Pi ausführen —
-# RPi.GPIO ist nur auf dem Pi installierbar/verwendbar)
-python3 -m venv tatooine_monitor/venv
-tatooine_monitor/venv/bin/pip install -r requirements.txt
+# direkt auf dem Raspberry Pi ausführen (RPi.GPIO ist nur dort installierbar):
+cd /opt/tatooinePi/tatooine_monitor
+python3 -m venv venv-monitor
+./venv-monitor/bin/pip install -r ../requirements.txt
+
+# Test: Version ausgeben / Test-Alarm-Mail senden
+./venv-monitor/bin/python tatooine_monitor.py -v
+./venv-monitor/bin/python tatooine_monitor.py -t
 ```
 
-Deployment auf dem Live-System nach `/opt/tatooinePi/` (die Programme
-erwarten die Konfigurationsdateien unter diesem Pfad).
+Aktivieren zum manuellen Arbeiten: `source /opt/tatooinePi/tatooine_monitor/venv-monitor/bin/activate`.
+
+## Dokumentation (Sphinx)
+
+Die API-Doku liegt in `docs/` und wird aus den Docstrings per Sphinx gebaut
+(nicht auf dem Pi nötig, eigene Abhängigkeiten in `docs/requirements.txt`):
+
+```bash
+cd docs
+pip install -r requirements.txt
+make html        # Ausgabe: docs/_build/html/index.html
+```
 
 ## Konfiguration
 
