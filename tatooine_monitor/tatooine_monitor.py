@@ -366,7 +366,11 @@ if __name__ == '__main__':
         log_level=tatooine_log_level,
     )
 
-    # Starten der Main Loop
-    main(showData, monitor_cfg)
+    # Starten der Main Loop (Ctrl+C wird sauber abgefangen)
+    try:
+        main(showData, monitor_cfg)
+    except KeyboardInterrupt:
+        logger.info("TatooineMonitor wird beendet (KeyboardInterrupt)")
+        sys.exit(0)
         
 
