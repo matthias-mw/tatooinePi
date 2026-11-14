@@ -15,8 +15,8 @@ __GYRO_Z,GYRO_Z,Gierwinkel um Z,dps,4,60,5,5,100
 __GYRO_TEMP,GYRO_TEMP,GyroModultemperatur,grdC,2,600,5,1.5,10
 __T_Baro,T_inside,Temperatur ausserhalb der IT Box,grdC,2,600,5,1.5,10
 __Baro,Baro,Umgebungsdruck,hPa,2,600,5,1.5,10
-28-012113124839,T_Anb,1Wire DS18S20,grdC,3,600,5,1.5,10
-28-01211321b3b6,T_Starter_Bat,1Wire DS18S20,grdC,3,600,5,1.5,10
+10-0008016042f1,T_Anb,1Wire DS18S20,grdC,3,600,5,1.5,10
+28-000003aaf7e8,T_Starter_Bat,1Wire DS18S20,grdC,3,600,5,1.5,10
 28-0121131907b3,T_Service_Bat1,1Wire DS18S20,grdC,3,600,5,1.5,10
 28-012112ff26b4,T_Service_Bat2,1Wire DS18S20,grdC,3,600,5,1.5,10
 GPIO14,GPIO14,GPIO14,-,0,100,0,0,0
