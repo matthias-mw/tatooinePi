@@ -1,3 +1,4 @@
 # Abhängigkeiten nur für den Doku-Build (Sphinx) — nicht auf dem Pi nötig.
 # Build: cd docs && pip install -r requirements.txt && make html
 sphinx
+sphinx-rtd-theme

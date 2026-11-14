@@ -41,6 +41,9 @@ extensions = [ 'sphinx.ext.autodoc',
                'sphinx.ext.autosummary',
                'sphinx.ext.todo'
               ]
+# Hardware-/Pi-Module mocken, damit autodoc auch auf Nicht-Pi-Rechnern
+# (z.B. barbuda) bauen kann
+autodoc_mock_imports = ['smbus2', 'RPi', 'RPi.GPIO', 'bmp280', 'pytz', 'influxdb_client']
 autodoc_default_flags = ['members']
 autosummary_generate = False
 todo_include_todos=True

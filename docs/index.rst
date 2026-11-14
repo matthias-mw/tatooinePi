@@ -2,17 +2,18 @@
 Welcome to Tatooine Monitor's documentation!
 ============================================
 
-Tatooine Monitor ist ein Projekt zur Überwachung der Segelyacht Tatooine. Dazu sind folgende grundlegenden Funktionalitäten angedacht:
+Tatooine Monitor ist ein Projekt zur Überwachung der Segelyacht Tatooine. folgende Funktionalitäten sind umgesetzt:
 
-**1. Aufzeichen von relevanten Messdaten**
-   Relevante Messdaten sollen mit speziellen Sensoren erfasst, aufbereitet und aufgezeichnet werden. Die Speicherung erfolgt in einer InfluxDB auf die dann über das Netz zugegriffen werden kann.
+**1. Aufzeichnen von relevanten Messdaten**
+   Messdaten werden mit speziellen Sensoren (I2C, 1-Wire, GPIO) erfasst, gefiltert und in einer InfluxDB (V2 API) gespeichert. Der externe Zugriff erfolgt über die InfluxDB.
 
-**2. Auslösen von Events basierend auf Messdaten**
-   .. todo::
-      Auf der Basis der Messdaten sollen Berichte und alarme versendet werden
+**2. Alarmierung basierend auf Messdaten**
+   Grenzwertverletzungen (konfigurierbar in :file:`config_alerts.csv`, inkl. Hysterese) lösen Alarm-E-Mails über SMTP aus (Debouncing, Tageslimit).
 
-**Folgende weitere Funktionen können in der Zukunft folgen.**
-   Integration in SignalK, Open Plotter, tbd...
+**3. Zwei Systeme (Live / Simu)**
+   Über ``-c/--config`` wählbar: ``monitor_live.conf`` (Bucket ``sensors``) und ``monitor_simu.conf`` (Bucket ``sensors_simu``). Zugangsdaten liegen in einer ``.env`` neben der jeweiligen conf.
+
+**Geplant:** Integration in SignalK/OpenPlotter, Überwachung des Speicherplatzes der Überwachungskamera inkl. Warnung.
 
 
 Inhalt

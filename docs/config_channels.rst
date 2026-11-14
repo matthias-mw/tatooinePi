@@ -28,7 +28,7 @@ Aktive Messkanäle des TatooineMonitors
 
 
 .. csv-table:: 
-   :file:   /home/pi/tatooinePi/tatooine_monitor/config_channels.csv
+   :file:   ../tatooine_monitor/config_channels.csv
    :widths: 20, 10, 10, 10, 10, 10, 10, 10, 10
    :header-rows: 1
 
@@ -61,7 +61,7 @@ Aktive AlarmConfigs des TatooineMonitors
 
 
 .. csv-table:: 
-   :file:   /home/pi/tatooinePi/tatooine_monitor/config_alerts.csv
+   :file:   ../tatooine_monitor/config_alerts.csv
    :widths: 20, 10, 40, 10, 10, 10, 10
    :header-rows: 1
 

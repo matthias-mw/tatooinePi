@@ -160,25 +160,27 @@ class INA219:
         """Configure and calibrate how the INA219 will take measurements.
 
         Arguments:
-        voltage_range -- The full scale voltage range, this is either 16V
-            or 32V represented by one of the following constants;
-            RANGE_16V, RANGE_32V (default).
-        gain -- The gain which controls the maximum range of the shunt
-            voltage represented by one of the following constants;
-            GAIN_1_40MV, GAIN_2_80MV, GAIN_4_160MV,
-            GAIN_8_320MV, GAIN_AUTO (default).
-        bus_adc -- The bus ADC resolution (9, 10, 11, or 12-bit) or
-            set the number of samples used when averaging results
-            represent by one of the following constants; ADC_9BIT,
-            ADC_10BIT, ADC_11BIT, ADC_12BIT (default),
-            ADC_2SAMP, ADC_4SAMP, ADC_8SAMP, ADC_16SAMP,
-            ADC_32SAMP, ADC_64SAMP, ADC_128SAMP
-        shunt_adc -- The shunt ADC resolution (9, 10, 11, or 12-bit) or
-            set the number of samples used when averaging results
-            represent by one of the following constants; ADC_9BIT,
-            ADC_10BIT, ADC_11BIT, ADC_12BIT (default),
-            ADC_2SAMP, ADC_4SAMP, ADC_8SAMP, ADC_16SAMP,
-            ADC_32SAMP, ADC_64SAMP, ADC_128SAMP
+
+            voltage_range -- The full scale voltage range, this is either
+                16V or 32V represented by one of the following constants;
+                RANGE_16V, RANGE_32V (default).
+            gain -- The gain which controls the maximum range of the shunt
+                voltage represented by one of the following constants;
+                GAIN_1_40MV, GAIN_2_80MV, GAIN_4_160MV,
+                GAIN_8_320MV, GAIN_AUTO (default).
+            bus_adc -- The bus ADC resolution (9, 10, 11, or 12-bit) or
+                set the number of samples used when averaging results
+                represent by one of the following constants; ADC_9BIT,
+                ADC_10BIT, ADC_11BIT, ADC_12BIT (default),
+                ADC_2SAMP, ADC_4SAMP, ADC_8SAMP, ADC_16SAMP,
+                ADC_32SAMP, ADC_64SAMP, ADC_128SAMP
+            shunt_adc -- The shunt ADC resolution (9, 10, 11, or 12-bit) or
+                set the number of samples used when averaging results
+                represent by one of the following constants; ADC_9BIT,
+                ADC_10BIT, ADC_11BIT, ADC_12BIT (default),
+                ADC_2SAMP, ADC_4SAMP, ADC_8SAMP, ADC_16SAMP,
+                ADC_32SAMP, ADC_64SAMP, ADC_128SAMP
+
         """
         self.__validate_voltage_range(voltage_range)
         self._voltage_range = voltage_range
