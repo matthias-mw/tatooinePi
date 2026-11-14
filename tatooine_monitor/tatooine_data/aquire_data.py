@@ -103,6 +103,10 @@ class AquireData:
         
         # Objekt für BMP280
         self.bmp280 = BMP280(i2c_dev=bus)
+
+        # Objekt für die GPIO-Auslesung (einmalig anlegen - GPIO.setup() läuft
+        # nur hier, nicht in jedem Messzyklus)
+        self.gpio = GpioService()
         
         #Initialisierung der aktuellen Messdaten
         self.data_last_measured =[DataPoint(x['ID'],x['Name'],x["Unit"], \
@@ -276,19 +280,19 @@ class AquireData:
         
         """
         isoTime = datetime.now()
-        tmp = GpioService()
-        
-        # Abseichern im Datenarray
+
+        # Abspeichern im Datenarray
         for x in self.data_last_measured:
-            
-            # Wenn es sich um einen GPIO Kanal handelt 
+
+            # Wenn es sich um einen GPIO Kanal handelt
             reg = re.search("GPIO", x.id)
             if reg:
                 # Die Kanalnummer ermitteln
                 gpio_chn = int (x.id[reg.span()[1]:])
-                # Den Kanal auslesen
-                resultIo = tmp.getGPIO(gpio_chn)
- 
+                # Den Kanal auslesen (bei unbekanntem Kanal wirft getGPIO eine
+                # Exception, die in aquire_data_i2c() geloggt wird)
+                resultIo = self.gpio.getGPIO(gpio_chn)
+
                 # Abspeichern des Wertes
                 self._store_data(x,resultIo,isoTime)
                 

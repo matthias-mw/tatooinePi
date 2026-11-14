@@ -7,8 +7,7 @@ import RPi.GPIO as GPIO
 # Import Logging Modul
 import logging
 
-# Import System Module
-import os, signal
+
 
 class GpioService:
     """Serviceklasse zum Auslesen der GPIOs
@@ -67,14 +66,7 @@ class GpioService:
             if i == io:
                 return GPIO.input(io)
         
-        # Programmabbruch, falls ein falscher Kanal spezifiziert wurde
+        # Unbekannter Kanal -> Exception (wird vom Aufrufer geloggt),
+        # statt den ganzen Prozess zu killen
         self.logger.critical(f"GPIO Kanal {io} ist nicht für das Auslesen spezifiziert. Bitte Config überprüfen!")
-        
-        print(f"GPIO Kanal {io} ist nicht für das Auslesen spezifiziert. Bitte Config überprüfen!")
-        print("Programm  wird beendet ...")
-                
-        # Program beenden aus einem Tread heraus geht nur in Linux
-        os.kill(os.getpid(), signal.SIGINT)
-
-
-        return None
+        raise ValueError(f"GPIO Kanal {io} ist nicht in _GPIO_IN konfiguriert")
