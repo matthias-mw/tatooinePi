@@ -206,11 +206,14 @@ def getFolderSize (folder: str, unit = "mb"):
     """
     
     size = 0
-    # Iterieren durch alle Files
-    for path, dirs, files in os.walk(folder): 
-        for f in files: 
-            fp = os.path.join(path, f) 
-            size += os.path.getsize(fp) 
+    # Iterieren durch alle Files (ein File kann während des Laufs verschwinden)
+    for path, dirs, files in os.walk(folder):
+        for f in files:
+            fp = os.path.join(path, f)
+            try:
+                size += os.path.getsize(fp)
+            except OSError:
+                pass
     
     if (unit.lower() == "mb"):
         # Ausgabe der Größe in MB

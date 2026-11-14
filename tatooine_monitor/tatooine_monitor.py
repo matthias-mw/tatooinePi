@@ -12,7 +12,6 @@ __status__ = "Development"
 
 from datetime import datetime
 import logging
-from pickle import FALSE, TRUE
 import sys
 import smbus2
 import time
@@ -79,7 +78,7 @@ class MonitorConfig:
 #=========================================================================
 # Main Program
 #=========================================================================
-def main(show = FALSE, cfg: MonitorConfig = None):
+def main(show = False, cfg: MonitorConfig = None):
 
     # I2C-Bus erst hier öffnen (nicht beim Import), damit das Modul auch
     # ohne /dev/i2c-1 importierbar bleibt (z.B. für Tests oder -t/--testemail)
@@ -186,7 +185,7 @@ def main(show = FALSE, cfg: MonitorConfig = None):
                 time.sleep(delay)
             
             #Ausgabe der aktuellen Daten über Stdout
-            if(show == TRUE):
+            if(show == True):
                 print(chr(27) + "[2J" + helper.show_current_data(data_handle.get_last_data_measured()))
             
             #finish = time.perf_counter()    
@@ -304,10 +303,10 @@ if __name__ == '__main__':
         print ("Debug Logging enabled...")
         tatooine_log_level = logging.DEBUG
             
-    showData = FALSE
+    showData = False
     if args.show:
         print ("Liveausgabe der Daten aktiviert...")
-        showData = TRUE
+        showData = True
 
 
     # Ausgabe der Größe relevanter Verzeichnisse zur Info

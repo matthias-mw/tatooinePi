@@ -84,9 +84,6 @@ class   DataPoint():
     storage_prelim_hysterese: bool = True
     """Bei einer großen Abweichung wird auch der vorangegangene Wert mit abgespeichert, um das sprungevent Zeitlich auflösen zu können. Dies erfolgt aber nur einmalig zu Beginn, dazu wird dieses Bit dan auf True gesetzt und erst nach der nächsten Unterschreitung der Sprungerkennung resetiert"""
     
-    act_val_stored_to_db: bool = False
-    """Mit diesem Flag wird gekennzeichnet, dass der aktuell vorhandene Wert schon in der InfluxDB abgelegt wurde. So werden mehrfache unbenötigte Schreibzugriffe unterbunden."""
-    
     history_length: int = 10
     """Anzahl der Werte die in der Historie gespeichert werden"""
         
@@ -187,10 +184,7 @@ class   DataPoint():
             self.value_dev_abs = float(0)
             self.value_dev_perc = float(0)
             
-        # Vermerken, das ein neuer Wert vorliegt    
-        self.act_val_stored_to_db = False
-        
-        
+
     def print_data_line(self) -> str:
         """ Print Funktion zur Darstellung des Messwertes und der Statistik in
             einer Linie.

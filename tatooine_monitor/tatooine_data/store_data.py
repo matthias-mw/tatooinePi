@@ -140,7 +140,6 @@ class StoreDataToInflux:
                 self.logger.debug(f"Sprung erkannt auf {chn.name} -> aktueller Wert: {chn.value:3.2f} {chn.unit}")
                 
                 chn.storage_prelim_hysterese = True
-                chn.act_val_stored_to_db = True
 
             # Wenn der die max Anzahl von Zyklen ohne Speicherung abgelaufen ist
             elif (chn.storage_tick_counter >= chn.storage_tick_max) or \
@@ -152,7 +151,6 @@ class StoreDataToInflux:
                     self._developer_mode)
                 # den Counter für das Abspeichern zurücksetzen
                 chn.storage_tick_counter = 0
-                chn.act_val_stored_to_db = True
             
 
             # keine Speicherung in diesem Zyklus und Zykluscounter hochzählen
