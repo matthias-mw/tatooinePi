@@ -86,8 +86,8 @@ class Alerting:
     ALERT_CYCLE_ACTIVE   = 1
     """Statusgröße für :mod:`~tatooine_data.alert_chn.AlertChn`   -> Alarm hat den Grenzwert verletzt"""
     
-    alerts_cfg = []
-    """Konfiguration der Alarme"""
+    # alerts_cfg wird in __init__ als Instanz-Attribut angelegt
+    # (kein Klassen-Attribut mit mutablem Default)
     
     _last_email_alarm_send: datetime = datetime.now()
     """Zeitpunkt zudem zuletzt einen E-Mail versendet wurde."""
@@ -140,6 +140,7 @@ class Alerting:
         self.logger.addHandler(logging.NullHandler())
 
         # Konfiguration der Alarme einlesen
+        self.alerts_cfg = []
         self.conf_alerts()
         
     

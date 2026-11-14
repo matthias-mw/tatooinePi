@@ -12,6 +12,9 @@ from dataclasses import field
 # Import Logging Modul
 import logging
 
+# Modul zum Multithreading (Lock für thread-sichere Updates)
+import threading
+
 # Festlegen der Zeitzone für die Aufnahme der Messwerte und deren Zeitstempel
 tz_berlin = timezone('Europe/Berlin')
 
@@ -101,8 +104,13 @@ class   DataPoint():
     logger.addHandler(logging.NullHandler())
     
     
+    def __post_init__(self):
+        # Lock: update_value() wird von Worker-Threads aufgerufen, während
+        # der Main-Thread die Felder liest
+        self._lock = threading.Lock()
+
     def update_value(self, new_value = float , new_timestamp = datetime):
-        """Updaten des Messwertes in der Dataclass
+        """Updaten des Messwertes in der Dataclass (thread-sicher via Lock)
         
         Es wird der neue Messwert und dessen Zeitstempel in der Klasse 
         abgespeichert, sowie anschließend alle neuen Statistikberechnungen
@@ -121,6 +129,10 @@ class   DataPoint():
         :type new_timestamp:  datetime
         """        
         
+        with self._lock:
+            self._update_value_locked(new_value, new_timestamp)
+
+    def _update_value_locked(self, new_value, new_timestamp):
         #-----------------------------------------------------------------------
         # Ältesten Wert aus der Historie entfernen
         #-----------------------------------------------------------------------

@@ -51,9 +51,8 @@ class AquireData:
     _MAX_DATA_POINTS_HISTORY = 8
     """Anzahl der Werte die in der Datenhistorie betrachtet werden"""     
   
-    data_last_measured = []
-    """Array von :class:`~tatooine_data.datapoint.DataPoint`, welcher den aktuellen Messwert jedes verfügbaren Kanals bereit hält.
-    """  
+    # data_last_measured wird in __init__ als Instanz-Attribut angelegt
+    # (kein Klassen-Attribut mit mutablem Default, das sich Instanzen teilen würden)
     
     
     __SCALE_ADC = 10
