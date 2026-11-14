@@ -246,10 +246,12 @@ class Alerting:
                         self.logger.info(f"Alarmmeldung: Kanal {alert.name} ist größer {alert.level:3.2f}{alert.unit}")
                         
                     # Alarmwert Überschreitung wird zurückgesetzt
-                    elif ((alert.condition == "gt") and (chn.value < alert.level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
+                    # (erst wenn die Hysterese komplett unterschritten ist)
+                    elif ((alert.condition == "gt") and (chn.value < alert.level - alert.hysterese_level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
 
                         # Reset der Alarmbedingung
                         alert.cycle = self.ALERT_CYCLE_RESET
+                        self.logger.info(f"Alarm zurückgesetzt: Kanal {alert.name} ist unter {alert.level - alert.hysterese_level:3.2f}{alert.unit}")
                     
                     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     # Alarmwert wird erstmalig unterschritten      
@@ -271,10 +273,12 @@ class Alerting:
                        
                         
                     # Alarmwert Unterschreitung wird zurückgesetzt
-                    elif ((alert.condition == "st") and (chn.value > alert.level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
+                    # (erst wenn die Hysterese komplett überschritten ist)
+                    elif ((alert.condition == "st") and (chn.value > alert.level + alert.hysterese_level) and (alert.cycle == self.ALERT_CYCLE_ACTIVE)):
 
                         # Reset der Alarmbedingung
                         alert.cycle = self.ALERT_CYCLE_RESET
+                        self.logger.info(f"Alarm zurückgesetzt: Kanal {alert.name} ist über {alert.level + alert.hysterese_level:3.2f}{alert.unit}")
             
                     else:
                         
