@@ -1,53 +1,78 @@
+Tatooine Monitor
+================
 
-Welcome to Tatooine Monitor's documentation!
-============================================
+Der **Tatooine Monitor** überwacht die Segelyacht *SV Tatooine* aus der Ferne.
+Ein Raspberry Pi auf dem Boot erfasst laufend Messdaten, speichert sie in einer
+lokalen InfluxDB und versendet bei Grenzwertverletzungen Alarm-E-Mails.
 
-Tatooine Monitor ist ein Projekt zur Überwachung der Segelyacht Tatooine. folgende Funktionalitäten sind umgesetzt:
+Funktionsumfang
+---------------
 
-**1. Aufzeichnen von relevanten Messdaten**
-   Messdaten werden mit speziellen Sensoren (I2C, 1-Wire, GPIO) erfasst, gefiltert und in einer InfluxDB (V2 API) gespeichert. Der externe Zugriff erfolgt über die InfluxDB.
+**1. Messdatenerfassung**
+   Die Messdaten werden mit verschiedenen Sensoren über I2C, 1-Wire und GPIO
+   erfasst, gefiltert (gleitender Mittelwert) und in einer InfluxDB (V2 API)
+   gespeichert. Der externe Zugriff auf die Daten erfolgt über die InfluxDB
+   (z. B. Grafana).
 
-**2. Alarmierung basierend auf Messdaten**
-   Grenzwertverletzungen (konfigurierbar in :file:`config_alerts.csv`, inkl. Hysterese) lösen Alarm-E-Mails über SMTP aus (Debouncing, Tageslimit).
+**2. Alarmierung basierend auf den Messdaten**
+   Grenzwertverletzungen — konfigurierbar in :file:`config_alerts.csv` inklusive
+   Hysterese — lösen Alarm-E-Mails über SMTP aus. Debouncing und ein Tageslimit
+   verhindern Mail-Fluten bei Störungen.
 
 **3. Zwei Systeme (Live / Simu)**
-   Über ``-c/--config`` wählbar: ``monitor_live.conf`` (Bucket ``sensors``) und ``monitor_simu.conf`` (Bucket ``sensors_simu``). Zugangsdaten liegen in einer ``.env`` neben der jeweiligen conf.
+   Über das Argument ``-c/--config`` ist wählbar: :file:`monitor_live.conf`
+   (Bucket ``sensors``, Location-Tag ``tatooine``) und :file:`monitor_simu.conf`
+   (Bucket ``sensors_simu``, Location-Tag ``tatooine-simu``, Developer Mode aktiv).
+   Zugangsdaten liegen in einer :file:`.env`-Datei neben der jeweiligen conf.
 
-**Geplant:** Integration in SignalK/OpenPlotter, Überwachung des Speicherplatzes der Überwachungskamera inkl. Warnung.
+Gemessene Größen
+----------------
 
+.. list-table::
+   :header-rows: 1
+
+   * - Messgröße
+     - Sensor
+     - Bus
+   * - Batteriespannungen (Service 12 V, Bugstrahlruder 24 V, Starter 12 V, Aux 1/2)
+     - ADS1115 (16-Bit-ADC, 4 Kanäle)
+     - I2C (Adresse ``0x48``)
+   * - Stromaufnahme und Leistung des IT-Systems
+     - INA219 (Shunt 0,1 Ohm)
+     - I2C (Adresse ``0x40``)
+   * - Beschleunigung (X/Y/Z), Drehraten (X/Y/Z), Chip-Temperatur
+     - MPU6050
+     - I2C (Adresse ``0x68``)
+   * - Lufttemperatur und Luftdruck
+     - BMP280
+     - I2C
+   * - Temperaturen (z. B. Batterien), je Sensor über die 1-Wire-ID als Kanal
+     - DS18S20
+     - 1-Wire (``/sys/bus/w1/devices``)
+   * - Digitale Eingänge (BCM 14, 15, 17, 18, 27)
+     - GPIO
+     - GPIO
+
+**Geplant:** Integration in SignalK/OpenPlotter, Überwachung des Speicherplatzes
+der Überwachungskamera inklusive Warnung bei Knappheit.
 
 Inhalt
-============================================
-
-:doc:`config_channels` 
-   Konfiguration aller gemessen Kanäle.
-
-:doc:`tatooine_data`
-    In diesem Package sind alle Module zu Erfassung, Berechnung und Speicherung von den Messdaten des TatooineMonitor enthalten.
-
-:doc:`tatooine_notify`
-    In diesem Package sind alle Module zum Benachrichtigungs- und Alarmsystem von den Messdaten des TatooineMonitor enthalten.
-
-:doc:`driver`
-    In diesem Package sind alle Module (Treiber) integriert, welche zur Gewinnung von Messdaten des TatooineMonitors benötigt werden.
-
-
-
+------
 
 .. toctree::
-   :maxdepth: 3
-   :hidden:
+   :maxdepth: 2
 
-   config_channels
+   installation
+   betrieb
+   konfiguration
+   architektur
    tatooine_data
-   tatooine_notify
+   alerting
    driver
 
 
-
-
-Indices and tables
-==================
+Indices und Tabellen
+====================
 
 * :ref:`genindex`
 * :ref:`modindex`

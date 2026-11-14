@@ -22,11 +22,11 @@ print(target_dir)
 # -- Project information -----------------------------------------------------
 
 project = 'Tatooine Monitor'
-copyright = '2021, Matthias Werner'
+copyright = '2021-2026, Matthias Werner'
 author = 'Matthias Werner'
 
 # The full version, including alpha/beta/rc tags
-release = '0.01'
+release = '0.1'
 
 
 # -- General configuration ---------------------------------------------------

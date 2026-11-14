@@ -15,7 +15,7 @@ DEFAULT_CONF_DIR = "/opt/tatooinePi/tatooine_monitor"
 """Standard-Verzeichnis der Konfigurationsdateien (config_channels.csv, config_alerts.csv, .env)"""
 
 CHANNEL_CONFIG_LIST = []
-"""Liste mit allen Messkanälen und Ihren Eigenschaften :doc:`config_channels` """
+"""Liste mit allen Messkanälen und Ihren Eigenschaften, siehe :doc:`konfiguration` """
 
 def load_csv_config(csv_path: str) -> list:
     """Lädt eine CSV-Konfigurationsdatei als Liste von Dicts

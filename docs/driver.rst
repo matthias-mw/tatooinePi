@@ -1,38 +1,40 @@
-Python Treiber für die Messmodule
-=================================
+API: Treiber für die Messmodule (``driver``)
+=============================================
 
-In diesem Package sind alle Treiber integriert, welche zur Gewinnung von Messdaten des TatooineMonitors benötigt werden. Es gibt einen Treiber pro verwendetem Chip. Es können sich mehrere Chips den gleichen Datenbus teilen. 
+In diesem Package sind alle Treiber integriert, die zur Gewinnung der Messdaten
+benötigt werden — ein Treiber pro Chip. Mehrere Chips teilen sich den I2C-Bus
+(gemeinsames ``smbus2``-Busobjekt, exklusiver Zugriff über Lock in
+:class:`~tatooine_data.aquire_data.AquireData`). Siehe auch :doc:`architektur`.
 
+Module am I2C-Bus
+-----------------
 
-Module angeschlossen am i2c Bus
---------------------------------
-
-ADS111x
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADS1115 (4 analoge Spannungskanäle, Adresse ``0x48``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: driver.i2c_ads1115
    :members:
 
-**Für die detailierte Konfiguration müssen 2 Byte (MSB,LSB) in des Config Register geschrieben werden. Diese Bytes ergeben sich durch das "bitweise Oder" der folgenden Konstanten**
+Die Konfiguration des ADS1115 erfolgt über zwei Bytes (MSB/LSB) im
+Config-Register, die sich durch bitweises Oder der Klassenkonstanten ergeben
+(MUX, PGA, MODE, Data-Rate, Komparator). Die Messung läuft als Single-Shot:
+Config schreiben, pollen bis die Conversion abgeschlossen ist, dann das
+Conversion-Register lesen und auf Volt skalieren.
 
-.. literalinclude:: ../tatooine_monitor/driver/i2c_ads1115.py
-   :language: python
-   :lines: 53 - 142
-
-INA219
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INA219 (Spannung/Strom/Leistung, Adresse ``0x40``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: driver.i2c_ina219
    :members:
 
-MPU 6050
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MPU6050 (Gyroskop/Beschleunigung, Adresse ``0x68``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: driver.i2c_mpu6050
    :members:
 
-Module für den 1-Wire Bus
---------------------------------
+Modul für den 1-Wire-Bus
+------------------------
+
 .. automodule:: driver.one_wire
    :members:
-   :private-members: _path_to_1W_sensors, _temp_sensor_1w_filename
