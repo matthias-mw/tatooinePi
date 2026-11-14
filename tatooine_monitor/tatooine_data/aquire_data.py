@@ -89,8 +89,11 @@ class AquireData:
         self.Adc3 = ADS1115(bus,ADS1115.MUX_AIN2_GND,4.096)
         self.Adc4 = ADS1115(bus,ADS1115.MUX_AIN3_GND,4.096)
 
-        # Objekt für die Powerüberwachung anlegen
+        # Objekt für die Powerüberwachung anlegen und einmalig konfigurieren
+        # (der INA219 behält das Config-Register, ein configure() pro
+        # Messzyklus ist nicht nötig)
         self.Ina = INA219(self.SHUNT_OHMS,3,1,0x40)
+        self.Ina.configure()
 
         # Objekt für den MPU6050 anlegen
         self.mpu = mpu6050(0x68)
@@ -138,20 +141,21 @@ class AquireData:
         """        
         
         #--------------------------------------------------------------------
-        # Erfassung der Messwerte des INA219 und anschließendes Abspeichern 
+        # Erfassung der Messwerte des INA219 und anschließendes Abspeichern
         #--------------------------------------------------------------------
-        self.Ina.configure()
         isoTime = datetime.now()
-                
+
+        # Spannung und Strom nur einmal pro Zyklus auslesen
+        # (jeder Aufruf von voltage()/current() ist ein I2C-Zugriff)
+        voltage = self.Ina.voltage()
+        current = self.Ina.current()
+
         for x in self.data_last_measured:
             if x.id == "__U_POWER_IT":
-                self._store_data(x,self.Ina.voltage(),isoTime)
-            if x.id == "__I_POWER_IT":
-                self._store_data(x,self.Ina.current(),isoTime)
-
-            voltage = self.Ina.voltage()    # einmal auslesen
-            current = self.Ina.current()    # einmal auslesen
-            if x.id == "__P_POWER_IT":
+                self._store_data(x, voltage, isoTime)
+            elif x.id == "__I_POWER_IT":
+                self._store_data(x, current, isoTime)
+            elif x.id == "__P_POWER_IT":
                 # Leistung aus U × I berechnen (V × mA = mW)
                 self._store_data(x, voltage * current, isoTime)
 
