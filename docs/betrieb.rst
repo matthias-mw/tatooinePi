@@ -51,8 +51,8 @@ Live- und Simu-System
      - ``sensors``
      - ``tatooine``
      - ``false``
-   * - :file:`monitor_simu.conf`
-     - Simu / Weiterentwicklung (manueller Start)
+   * - :file:`simu/monitor_simu.conf`
+     - Simu / Weiterentwicklung (manueller Start, eigenes conf-Verzeichnis :file:`simu/` mit eigenen CSVs und eigener :file:`.env`)
      - ``sensors_simu``
      - ``tatooine-simu``
      - ``true``
@@ -61,8 +61,8 @@ Live- und Simu-System
 
    $ # LIVE-System (Default, Argument kann weggelassen werden)
    $ ./venv-monitor/bin/python tatooine_monitor.py
-   $ # Simu-System
-   $ ./venv-monitor/bin/python tatooine_monitor.py -c monitor_simu.conf -s
+   $ # Simu-System (eigenes conf-Verzeichnis simu/)
+   $ ./venv-monitor/bin/python tatooine_monitor.py -c simu/monitor_simu.conf -s
 
 Die CSV-Konfigurationen (:file:`config_channels.csv`, :file:`config_alerts.csv`)
 und die :file:`.env` werden aus dem Verzeichnis der gewählten conf gelesen —
@@ -119,8 +119,8 @@ Logging
 -------
 
 Log-Datei und -Verzeichnis sind in der ``[Logging]``-Sektion der conf
-konfiguriert (:file:`monitor_live.log` bzw. :file:`monitor_simu.log` unter
-``/opt/tatooinePi/tatooine_monitor``). Das Log-Level ist einer der Werte
+konfiguriert (:file:`monitor_live.log` unter ``/opt/tatooinePi/tatooine_monitor``,
+:file:`monitor_simu.log` unter ``/opt/tatooinePi/tatooine_monitor/simu``). Das Log-Level ist einer der Werte
 ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR`` (``-d`` erzwingt ``DEBUG``).
 
 Beim Start werden außerdem die Datenbankgrößen der InfluxDB

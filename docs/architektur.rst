@@ -11,11 +11,15 @@ Aufbau des Repositories
    ├── tatooine_monitor.service         # systemd-Unit
    └── tatooine_monitor/
        ├── tatooine_monitor.py          # Hauptprogramm: Argumentparser, Config, Main Loop
-       ├── monitor_live.conf            # Konfiguration LIVE-System
-       ├── monitor_simu.conf            # Konfiguration Simu-System
-       ├── config_channels.csv          # Definition der Messkanäle
-       ├── config_alerts.csv            # Definition der Alarme
-       ├── .env                         # Secrets (gitignored)
+       ├── monitor_live.conf            # Konfiguration LIVE-System (Default ohne -c)
+       ├── config_channels.csv          # LIVE: Definition der Messkanäle
+       ├── config_alerts.csv            # LIVE: Definition der Alarme
+       ├── .env                         # LIVE: Secrets (gitignored)
+       ├── simu/                        # Simu-System: eigenes conf-Verzeichnis
+       │   ├── monitor_simu.conf        # Konfiguration Simu (Bucket sensors_simu)
+       │   ├── config_channels.csv      # Simu: eigene Messkanäle (z. B. andere DS18S20-IDs)
+       │   ├── config_alerts.csv        # Simu: eigene Alarme
+       │   └── .env                     # Simu: Secrets (gitignored)
        ├── tatooine_data/               # Package: Erfassung, Speicherung, Alarmierung
        │   ├── aquire_data.py           #   AquireData: zentrale Datenerfassung
        │   ├── datapoint.py             #   DataPoint: Messwert, Historie, Filter, Statistik

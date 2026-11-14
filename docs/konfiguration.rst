@@ -1,22 +1,40 @@
 Konfiguration
 =============
 
-Die Konfiguration verteilt sich auf vier Dateien im Verzeichnis der gewählten
-conf (Default: ``/opt/tatooinePi/tatooine_monitor``):
+Jedes System (LIVE und Simu) hat ein **eigenes conf-Verzeichnis**; alle
+dateibasierten Configs werden aus dem Verzeichnis der gewählten conf geladen
+(``conf_dir = Verzeichnis der -c/--config-Datei``):
+
+.. code-block:: text
+
+   /opt/tatooinePi/tatooine_monitor/
+   ├── monitor_live.conf          # LIVE (Default ohne -c, systemd)
+   ├── config_channels.csv        # LIVE-Messkanäle
+   ├── config_alerts.csv          # LIVE-Alarme
+   ├── .env                       # LIVE-Secrets (gitignored)
+   └── simu/
+       ├── monitor_simu.conf      # Simu: -c /opt/tatooinePi/tatooine_monitor/simu/monitor_simu.conf
+       ├── config_channels.csv    # Simu-Messkanäle (z. B. andere DS18S20-IDs)
+       ├── config_alerts.csv      # Simu-Alarme
+       └── .env                   # Simu-Secrets (gitignored)
 
 .. list-table::
    :header-rows: 1
 
    * - Datei
      - Inhalt
-   * - :file:`monitor_live.conf` / :file:`monitor_simu.conf`
+   * - :file:`monitor_live.conf` / :file:`simu/monitor_simu.conf`
      - Zentrale INI-Konfiguration (InfluxDB, Logging, Alarmierung, Pfade); Auswahl über ``-c/--config``
    * - :file:`.env`
      - Secrets (InfluxDB-Token, SMTP-Zugangsdaten) — nicht in git
    * - :file:`config_channels.csv`
-     - Definition aller Messkanäle
+     - Definition aller Messkanäle des jeweiligen Systems
    * - :file:`config_alerts.csv`
-     - Definition aller Alarme
+     - Definition aller Alarme des jeweiligen Systems
+
+Weil die 1-Wire-Kanal-ID der Sensor-ID (``28-...``) entspricht und der Treiber
+nur vorhandene Sensoren ausliest, kann die Simu-CSV bedenkenlos andere
+DS18S20-IDs enthalten als die LIVE-CSV.
 
 Zentrale conf-Datei
 -------------------

@@ -34,12 +34,17 @@ tatooinePi/
 ├── tatooine_monitor.service        # systemd-Unit (nach /etc/systemd/system/ kopieren)
 └── tatooine_monitor/
     ├── tatooine_monitor.py          # Hauptprogramm (Main Loop)
-    ├── monitor_live.conf            # Konfiguration LIVE-System
-    ├── monitor_simu.conf            # Konfiguration Simu-System (eigenes InfluxDB-Bucket)
-    ├── config_channels.csv          # Definition der Messkanäle (Filter, Schwellen, ...)
-    ├── config_alerts.csv            # Definition der Alarme (Grenzwerte, Hysterese, ...)
+    ├── monitor_live.conf            # Konfiguration LIVE-System (Default ohne -c)
+    ├── config_channels.csv          # LIVE: Definition der Messkanäle (Filter, Schwellen, ...)
+    ├── config_alerts.csv            # LIVE: Definition der Alarme (Grenzwerte, Hysterese, ...)
+    ├── .env                         # LIVE: Secrets (gitignored)
     ├── tatooine_data/               # Datenerfassung, InfluxDB-Schreibzugriff, Alerting, Helper
-    └── driver/                      # Treiber für die einzelnen Sensoren (I2C, 1-Wire)
+    ├── driver/                      # Treiber für die einzelnen Sensoren (I2C, 1-Wire)
+    └── simu/                        # Simu-System: eigenes conf-Verzeichnis
+        ├── monitor_simu.conf        # Konfiguration Simu (Bucket sensors_simu, DEVELOPER_MODE)
+        ├── config_channels.csv      # Simu: eigene Messkanäle (z. B. andere DS18S20-IDs)
+        ├── config_alerts.csv        # Simu: eigene Alarme
+        └── .env                     # Simu: Secrets (gitignored)
 ```
 
 ## Installation
@@ -84,12 +89,14 @@ make html        # Ausgabe: docs/_build/html/index.html
 
 ## Konfiguration
 
-Die zentrale Konfiguration liegt in einer INI-Datei. Es gibt zwei Varianten:
+Die zentrale Konfiguration liegt in einer INI-Datei. Es gibt zwei Varianten,
+jede in ihrem eigenen Verzeichnis (damit liegen auch die CSVs und die `.env`
+getrennt):
 
-| Datei | System | InfluxDB-Bucket |
+| conf-Datei | System | InfluxDB-Bucket |
 |---|---|---|
-| `monitor_live.conf` | LIVE (Default) | `sensors` |
-| `monitor_simu.conf` | Simu / Weiterentwicklung | `sensors_simu` |
+| `tatooine_monitor/monitor_live.conf` | LIVE (Default) | `sensors` |
+| `tatooine_monitor/simu/monitor_simu.conf` | Simu / Weiterentwicklung | `sensors_simu` |
 
 Die Auswahl erfolgt über das Kommandozeilenargument `-c` / `--config`:
 
@@ -97,8 +104,8 @@ Die Auswahl erfolgt über das Kommandozeilenargument `-c` / `--config`:
 # LIVE-System (Default, Argument kann weggelassen werden)
 python3 tatooine_monitor.py
 
-# Simu-System
-python3 tatooine_monitor.py -c /opt/tatooinePi/tatooine_monitor/monitor_simu.conf
+# Simu-System (eigenes conf-Verzeichnis mit eigenen CSVs und .env)
+python3 tatooine_monitor.py -c /opt/tatooinePi/tatooine_monitor/simu/monitor_simu.conf
 ```
 
 Wird eine angegebene Datei nicht gefunden oder kann nicht geparst werden,
@@ -169,7 +176,7 @@ sudo systemctl enable --now tatooine_monitor.service
 
 Die Unit startet das Programm ohne `-c`, es wird also `monitor_live.conf`
 verwendet. Für das Simu-System genügt der manuelle Start mit `-c
-monitor_simu.conf`.
+simu/monitor_simu.conf` (relativ zu `/opt/tatooinePi/tatooine_monitor`).
 
 ## Datenablage (InfluxDB 2.x)
 
@@ -184,7 +191,8 @@ monitor_simu.conf`.
 ## Logging
 
 Log-Datei und -Verzeichnis sind in der `[Logging]`-Sektion konfiguriert
-(`monitor_live.log` bzw. `monitor_simu.log` unter `/opt/tatooinePi/tatooine_monitor`).
+(`monitor_live.log` unter `/opt/tatooinePi/tatooine_monitor`,
+`monitor_simu.log` unter `/opt/tatooinePi/tatooine_monitor/simu`).
 
 ---
 

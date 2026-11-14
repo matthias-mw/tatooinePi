@@ -109,7 +109,7 @@ Schritt 6: Funktionstest (noch ohne systemd)
    $ # Test-Alarm-E-Mail über den SMTP-Pfad senden (Prüft .env + SMTP-Konfig)
    $ ./venv-monitor/bin/python tatooine_monitor.py -t
    $ # Kurzer Probelauf auf dem Simu-System mit Live-Ausgabe der Messwerte
-   $ ./venv-monitor/bin/python tatooine_monitor.py -c monitor_simu.conf -s
+   $ ./venv-monitor/bin/python tatooine_monitor.py -c simu/monitor_simu.conf -s
 
 Das Programm bricht beim Start hart ab (Exit-Code 1), wenn die InfluxDB nicht
 erreichbar ist — systemd startet es in diesem Fall automatisch neu.
@@ -132,7 +132,9 @@ sorgt dafür, dass das Programm nach einem Abbruch (z. B. InfluxDB-Neustart)
 neu gestartet wird.
 
 Das Simu-System wird nicht über systemd betrieben, sondern manuell mit
-``-c monitor_simu.conf`` gestartet, siehe :doc:`betrieb`.
+``-c simu/monitor_simu.conf`` gestartet (eigenes conf-Verzeichnis
+:file:`simu/` mit eigenen CSVs und eigener :file:`.env`), siehe :doc:`betrieb`
+und :doc:`konfiguration`.
 
 Weiteres
 --------

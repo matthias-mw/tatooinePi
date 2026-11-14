@@ -19,11 +19,14 @@ Funktionsumfang
    Hysterese — lösen Alarm-E-Mails über SMTP aus. Debouncing und ein Tageslimit
    verhindern Mail-Fluten bei Störungen.
 
-**3. Zwei Systeme (Live / Simu)**
+**3. Zwei Systeme (Live / Simu) in getrennten conf-Verzeichnissen**
    Über das Argument ``-c/--config`` ist wählbar: :file:`monitor_live.conf`
-   (Bucket ``sensors``, Location-Tag ``tatooine``) und :file:`monitor_simu.conf`
-   (Bucket ``sensors_simu``, Location-Tag ``tatooine-simu``, Developer Mode aktiv).
-   Zugangsdaten liegen in einer :file:`.env`-Datei neben der jeweiligen conf.
+   (Bucket ``sensors``, Location-Tag ``tatooine``) und
+   :file:`simu/monitor_simu.conf` (Bucket ``sensors_simu``, Location-Tag
+   ``tatooine-simu``, Developer Mode aktiv). Jedes System hat sein eigenes
+   Verzeichnis mit eigenen :file:`config_channels.csv`, :file:`config_alerts.csv`
+   und :file:`.env` — das Simu-System kann also z. B. andere DS18S20-Sensoren
+   konfigurieren. Details in :doc:`konfiguration`.
 
 Gemessene Größen
 ----------------
