@@ -20,6 +20,7 @@ import argparse
 import os
 
 from configparser import ConfigParser
+from dataclasses import dataclass
 
 # Modul zum Multithreading
 import concurrent.futures
@@ -38,9 +39,9 @@ from tatooine_data import Alerting
 # (wird verwendet, wenn kein -c/--config Argument übergeben wird)
 TATOOINE_CONF_FILE = "/opt/tatooinePi/tatooine_monitor/monitor_live.conf"
 
-# Verzeichnis der verwendeten Konfigurationsdatei (wird in __main__ gesetzt).
-# Alle weiteren Configs (config_channels.csv, config_alerts.csv, .env) liegen dort
-TATOOINE_CONF_DIR = ""
+# Verzeichnis der verwendeten Konfigurationsdatei (wird in __main__ ermittelt und
+# im MonitorConfig-Objekt an main() übergeben; alle weiteren Configs wie
+# config_channels.csv, config_alerts.csv und .env liegen dort)
 
 
 # Länge der Hauptschleife
@@ -56,9 +57,29 @@ N_LOOPS_DELAY_ALERT_AT_STARTUP = 20
 
 
 #=========================================================================
+# Laufzeit-Konfiguration
+#=========================================================================
+@dataclass
+class MonitorConfig:
+    """Bündelt alle Laufzeit-Parameter des Monitors (statt globaler Variablen)"""
+    conf: ConfigParser
+    conf_dir: str
+    influx_host: str
+    influx_port: int
+    influx_token: str
+    influx_org: str
+    influx_bucket: str
+    influx_measurement: str
+    influx_tag_location: str
+    influx_developer_mode: bool
+    log_file_full_name: str
+    log_level: int
+
+
+#=========================================================================
 # Main Program
 #=========================================================================
-def main(show = FALSE):
+def main(show = FALSE, cfg: MonitorConfig = None):
 
     # I2C-Bus erst hier öffnen (nicht beim Import), damit das Modul auch
     # ohne /dev/i2c-1 importierbar bleibt (z.B. für Tests oder -t/--testemail)
@@ -70,18 +91,18 @@ def main(show = FALSE):
         sys.exit(1)
 
     # Konfiguration der Messkanäle
-    helper.config_channels(TATOOINE_CONF_DIR)
- 
+    helper.config_channels(cfg.conf_dir)
+
     # Initialisierunfg der Verbindung zur InfluxDB (V2 API)
-    inflDB = StoreDataToInflux(influx_host, influx_port, influx_token, \
-        influx_org, influx_bucket, influx_measurement, influx_tag_location, \
-        influx_developer_mode)
+    inflDB = StoreDataToInflux(cfg.influx_host, cfg.influx_port, cfg.influx_token, \
+        cfg.influx_org, cfg.influx_bucket, cfg.influx_measurement, \
+        cfg.influx_tag_location, cfg.influx_developer_mode)
 
     # Initialisierung der Datenerfassung
     data_handle = AquireData(bus)
 
     # Initialisierung Alarmsystem
-    alert_handle = Alerting(Config, TATOOINE_CONF_DIR)
+    alert_handle = Alerting(cfg.conf, cfg.conf_dir)
 
     # Test der Verbindung zu InfluxDB; beim Start hart abbrechen, wenn die
     # DB nicht erreichbar ist (systemd startet das Programm neu)
@@ -210,7 +231,6 @@ if __name__ == '__main__':
 
     # Verzeichnis der conf bestimmen (CSV-Configs und .env liegen dort)
     tatooine_conf_dir = os.path.dirname(os.path.abspath(tatooine_conf_file))
-    TATOOINE_CONF_DIR = tatooine_conf_dir
 
     # Zugangsdaten aus .env laden (liegt im selben Verzeichnis wie die conf);
     # bereits gesetzte Umgebungsvariablen haben Vorrang vor der .env
@@ -324,7 +344,7 @@ if __name__ == '__main__':
     if args.testemail:
         print("Sende Test-Alarm-E-Mail...")
         try:
-            alert_test = Alerting(Config, TATOOINE_CONF_DIR)
+            alert_test = Alerting(Config, tatooine_conf_dir)
             alert_test.send_test_email()
         except Exception as e:
             logger.error(f"Test-Alarm-E-Mail fehlgeschlagen: {e}")
@@ -332,7 +352,23 @@ if __name__ == '__main__':
             sys.exit(1)
         sys.exit(0)
 
+    # Alle Laufzeit-Parameter in einem Config-Objekt bündeln (statt Globals)
+    monitor_cfg = MonitorConfig(
+        conf=Config,
+        conf_dir=tatooine_conf_dir,
+        influx_host=influx_host,
+        influx_port=int(influx_port),
+        influx_token=influx_token,
+        influx_org=influx_org,
+        influx_bucket=influx_bucket,
+        influx_measurement=influx_measurement,
+        influx_tag_location=influx_tag_location,
+        influx_developer_mode=influx_developer_mode,
+        log_file_full_name=log_file_full_name,
+        log_level=tatooine_log_level,
+    )
+
     # Starten der Main Loop
-    main(showData)
+    main(showData, monitor_cfg)
         
 
