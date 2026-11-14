@@ -55,15 +55,20 @@ N_LOOPS_AQUIRE_1WIRE = 10
 N_LOOPS_DELAY_ALERT_AT_STARTUP = 20
 
 
-# Get I2C bus
-bus = smbus2.SMBus(1)
-
-
 #=========================================================================
-# Main Program 
+# Main Program
 #=========================================================================
 def main(show = FALSE):
-    
+
+    # I2C-Bus erst hier öffnen (nicht beim Import), damit das Modul auch
+    # ohne /dev/i2c-1 importierbar bleibt (z.B. für Tests oder -t/--testemail)
+    try:
+        bus = smbus2.SMBus(1)
+    except Exception as e:
+        logger.error(f"I2C-Bus /dev/i2c-1 konnte nicht geöffnet werden: {e} "
+                     "(i2c-dev aktivieren: raspi-config -> Interface Options -> I2C)")
+        sys.exit(1)
+
     # Konfiguration der Messkanäle
     helper.config_channels(TATOOINE_CONF_DIR)
  
