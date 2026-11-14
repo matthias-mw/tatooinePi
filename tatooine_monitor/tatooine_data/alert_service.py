@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Modul zur Bearbeitung der Zeitstempel
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 # Modul zur Verarbeitung von CSV Dateien
 import csv
@@ -122,6 +122,11 @@ class Alerting:
             "ALERTING", "DEBOUNCE_EMAIL_BETWEEN_ALARM_S"))
         self.EMAIL_LIMIT_PER_DAY = int(helper.getConfigValue(conf,"ALERTING",\
             "EMAIL_LIMIT_PER_DAY"))
+
+        # Letzter Mail-Zeitpunkt so initialisieren, dass die erste Alarm-Mail
+        # sofort rausgehen kann (der Mindestabstand gilt erst ab der 2. Mail)
+        self._last_email_alarm_send = datetime.now() - \
+            timedelta(seconds=self.DEBOUNCE_EMAIL_BETWEEN_ALARM_S)
 
         # SMTP Zugangsdaten kommen aus .env/Umgebung (nicht im Repo!)
         self.__SMTP_USERNAME = helper.get_secret("SMTP_USERNAME")
@@ -308,9 +313,16 @@ class Alerting:
                 
                 # Debounce E-Mail
                 if delay.total_seconds() > self.DEBOUNCE_EMAIL_ALARM_S:
-                    
-                    # Absenden einer Alarm EMail Notification
-                    self.send_email_alert(current_data_list)
+
+                    # Mindestabstand zwischen 2 Alarm-E-Mails einhalten;
+                    # bis dahin anliegende Alarme werden in der nächsten
+                    # Mail gesammelt
+                    since_last = datetime.now() - self._last_email_alarm_send
+                    if since_last.total_seconds() >= self.DEBOUNCE_EMAIL_BETWEEN_ALARM_S:
+                        # Absenden einer Alarm EMail Notification
+                        self.send_email_alert(current_data_list)
+                    else:
+                        self.logger.debug(f"Alarm-Mail unterdrückt: Mindestabstand {self.DEBOUNCE_EMAIL_BETWEEN_ALARM_S}s seit letzter Mail noch nicht erreicht")
             
             
             
