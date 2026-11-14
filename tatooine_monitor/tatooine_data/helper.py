@@ -17,6 +17,43 @@ DEFAULT_CONF_DIR = "/opt/tatooinePi/tatooine_monitor"
 CHANNEL_CONFIG_LIST = []
 """Liste mit allen Messkanälen und Ihren Eigenschaften :doc:`config_channels` """
 
+def load_csv_config(csv_path: str) -> list:
+    """Lädt eine CSV-Konfigurationsdatei als Liste von Dicts
+
+    Die erste Zeile der CSV ist der Header und liefert die Keys der Dicts.
+    Existiert die Datei nicht, wird das Programm mit Fehlermeldung beendet.
+
+    :param csv_path: Pfad zur CSV-Datei
+    :type csv_path: str
+    :return: Liste von Dicts (ein Dict pro Datenzeile)
+    :rtype: list
+    """
+    if not os.path.isfile(csv_path):
+        print(f"FEHLER: Konfigurationsdatei nicht gefunden: {csv_path}")
+        sys.exit(1)
+
+    # Sicheres öffnen der CSV Datei, welche durch With automatisch
+    # nach Beendigung des Auslesens geschlossen wird
+    rows = []
+    with open(csv_path) as csvdatei:
+        csv_reader_object = csv.reader(csvdatei)
+        header = []
+        # Verarbeiten der Daten aus der CSV Zeile für Zeile
+        for line_count, row in enumerate(csv_reader_object):
+            # Die erste Zeile der CSV repräsentiert die Header
+            if line_count == 0:
+                header = [colum for colum in row]
+            # Zuordnen der Config in ein Dictonary
+            else:
+                i = 0
+                channel_conf = {}
+                for y in header:
+                    channel_conf[y] = row[i]
+                    i += 1
+                rows.append(channel_conf)
+    return rows
+
+
 def config_channels(conf_dir: str = DEFAULT_CONF_DIR):
     """Konfiguartion aller Messkanäle
     
@@ -28,34 +65,9 @@ def config_channels(conf_dir: str = DEFAULT_CONF_DIR):
     """    
      
     conf_file = os.path.join(conf_dir, "config_channels.csv")
-    if not os.path.isfile(conf_file):
-        print(f"FEHLER: Kanalkonfiguration nicht gefunden: {conf_file}")
-        sys.exit(1)
-
-    # Sicheres öffnen der CSV Datei, welche durch With automatisch
-    # nach Beendigung des Auslesen geschlossen wird
-    with open(conf_file) as csvdatei:
-        
-        # Auslesen der Daten aus der CSV
-        csv_reader_object = csv.reader(csvdatei)
-        
-        line_count = 0
-        header = []
-        # Verarbeiten der Daten aus der CSV Zeile für Zeile
-        for row in csv_reader_object:
-            # Die erste Zeile der CSV repäsentiert die Header
-            if line_count == 0:
-                header = [colum for colum in row]
-                line_count +=1
-            # Zuordnen der Config eines jeden Kanals in ein Dictonary
-            else:
-                i=0
-                channel_conf = {}
-                for y in header:
-                    channel_conf[y] = row[i]
-                    i +=1
-                # Abspeichern in der Kanal Config Liste
-                CHANNEL_CONFIG_LIST.append(channel_conf)
+    # CSV parsen (Header = Keys) und in die Kanalliste übernehmen
+    for channel_conf in load_csv_config(conf_file):
+        CHANNEL_CONFIG_LIST.append(channel_conf)
              
 def show_current_data(data_last_measured: list[DataPoint]) -> str:
     """Tabellarische Anzeige der aktuellen Messwerte

@@ -145,73 +145,44 @@ class Alerting:
         
     
     def conf_alerts(self) -> None:
-        """Konfiguration aller Messkanäle
-        
-        Zu Beginn des Programms wird die Datei :file:`config_alerts.csv` gelesen. 
-        In Ihr sind alle relevanten Alarme zeilenweise aufgeführt. So
-        werden alle Parameter in die :mod:`~tatooine_data.alert_service.Alerting.alerts_cfg` eingelesen und anschließend in der Funktion :mod:`~tatooine_data.alert_service.Alerting.calc_alerts` genutzt.
-        Es werden folgenden Spalten benötigt:
-        
+        """Konfiguration aller Alarme
+
+        Liest die Datei config_alerts.csv (liegt im conf-Verzeichnis) über
+        :func:`~tatooine_data.helper.load_csv_config` ein. Es werden folgende
+        Spalten benötigt:
+
         .. code-block:: text
-        
+
             Name, Unit, Description, Level, Hysterese, Condition, Type
-           
-        Können die Kanäle nicht eingelesen werden, wird das Programm beendet.
-        
-        """    
-        
-        if not os.path.isfile(self.CONF_FILE):
-            print(f"FEHLER: Alarmkonfiguration nicht gefunden: {self.CONF_FILE}")
-            sys.exit(1)
 
-        # Sicheres öffnen der CSV Datei, welche durch With automatisch
-        # nach Beendigung des Auslesen geschlossen wird
-        with open(self.CONF_FILE) as csvdatei:
-            
-            # Auslesen der Daten aus der CSV
-            csv_reader_object = csv.reader(csvdatei)
-            line_count = 0
-            header = []
-            
-            # Verarbeiten der Daten aus der CSV Zeile für Zeile
-            for row in csv_reader_object:
-                # Die erste Zeile der CSV repäsentiert die Header
-                if line_count == 0:
-                    header = [colum for colum in row]
-                    line_count +=1
-                # Zuordnen der Config eines jeden Kanals in ein Dictonary
-                else:
-                    i=0
-                    channel_conf = {}
-                    for y in header:
-                        channel_conf[y] = row[i]
-                        i +=1
+        Können die Alarme nicht eingelesen werden, wird das Programm beendet.
 
-                    # Auswerten der Konfig Daten aus der CSV
-                    try:
-                        alert = AlertChn()
-                        alert.name = channel_conf['Name']
-                        alert.unit = channel_conf['Unit']
-                        alert.desc = channel_conf['Description']
-                        alert.level = float(channel_conf['Level'])
-                        alert.hysterese_level = float(channel_conf['Hysterese'])
-                        alert.condition  = channel_conf['Condition']
-                        alert.type  = channel_conf['Type']
-                        
-                        # in der Liste der Alarme abspeichern
-                        self.alerts_cfg.append(alert)
-                        self.logger.info(f"Alarm konfiguriert: {alert.name}( {alert.unit}), {alert.level} +/-{alert.hysterese_level} , {alert.condition}")
-                        
-                    # Programm beenden sollte das Auslesen schief gehen
-                    except:
+        """
 
-                        self.logger.critical(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}. Es werden folgende Spaltenheader erwartet: Name, Unit, Description, Level, Hysterese, Condition, Type")
-                        
-                        print(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}\nEs werden folgende Spaltenheader erwartet:\nName, Unit, Description, Level, Hysterese, Condition, Type")
-                        
-                        print(header)
-                        # beendet das Programm
-                        sys.exit("Programm wird beendet wegen falscher Alert Config...") 
+        for channel_conf in helper.load_csv_config(self.CONF_FILE):
+            # Auswerten der Konfig Daten aus der CSV
+            try:
+                alert = AlertChn()
+                alert.name = channel_conf['Name']
+                alert.unit = channel_conf['Unit']
+                alert.desc = channel_conf['Description']
+                alert.level = float(channel_conf['Level'])
+                alert.hysterese_level = float(channel_conf['Hysterese'])
+                alert.condition  = channel_conf['Condition']
+                alert.type  = channel_conf['Type']
+
+                # in der Liste der Alarme abspeichern
+                self.alerts_cfg.append(alert)
+                self.logger.info(f"Alarm konfiguriert: {alert.name}( {alert.unit}), {alert.level} +/-{alert.hysterese_level} , {alert.condition}")
+
+            # Programm beenden sollte das Auslesen schief gehen
+            except:
+                self.logger.critical(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}. Es werden folgende Spaltenheader erwartet: Name, Unit, Description, Level, Hysterese, Condition, Type")
+                print(f"Fehler in der Konfigurationsdatei für die Alarmmeldungen {self.CONF_FILE}\nEs werden folgende Spaltenheader erwartet:\nName, Unit, Description, Level, Hysterese, Condition, Type")
+                # beendet das Programm
+                sys.exit("Programm wird beendet wegen falscher Alert Config...")
+
+
 
 
     def calc_alerts(self, current_data_list: list[DataPoint]) -> None:
