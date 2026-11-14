@@ -10,7 +10,7 @@ zu speichern.
 
 __author__ = "Matthias Werner"
 __license__ = "GPL"
-__version__ = "0.1"
+__version__ = "0.2"
 __status__ = "Development"
 
 

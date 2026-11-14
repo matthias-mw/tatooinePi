@@ -26,7 +26,7 @@ copyright = '2021-2026, Matthias Werner'
 author = 'Matthias Werner'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '0.2'
 
 
 # -- General configuration ---------------------------------------------------
