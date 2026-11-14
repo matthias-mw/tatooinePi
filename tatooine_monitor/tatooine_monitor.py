@@ -76,10 +76,13 @@ def main(show = FALSE):
     data_handle = AquireData(bus)
 
     # Initialisierung Alarmsystem
-    alert_handle = Alerting(Config)
+    alert_handle = Alerting(Config, TATOOINE_CONF_DIR)
 
-    # Test der Verbindung zu InfluxDB
-    inflDB.check_db_connection()
+    # Test der Verbindung zu InfluxDB; beim Start hart abbrechen, wenn die
+    # DB nicht erreichbar ist (systemd startet das Programm neu)
+    if not inflDB.check_db_connection():
+        logger.error("InfluxDB beim Start nicht erreichbar - Programm wird beendet (systemd startet neu)")
+        sys.exit(1)
 
     cnt_i2c = 0
     cnt_i2c_slow = 0

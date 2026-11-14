@@ -74,6 +74,8 @@ class StoreDataToInflux:
         # InfluxDB Client mit V2 API (Token-basiert)
         url = f"http://{self._db_host}:{self._db_port}"
         self.client = InfluxDBClient(url=url, token=self._db_token, org=self._db_org)
+        # write_api einmalig anlegen (SYNCHRONOUS) und wiederverwenden
+        self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
 
         # ============================================
         # Konfiguration des Logging
@@ -81,21 +83,23 @@ class StoreDataToInflux:
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(logging.NullHandler())
     
-    def check_db_connection(self):
-        """Checken der Connection zur Datenbank
+    def check_db_connection(self) -> bool:
+        """Prüft die Verbindung zur InfluxDB per ping
 
-        Die Datenbank wird angesprochen. Im Falle einer ertablierten Verbindung wird die Versionnummer der DatenBank ausgegeben.
-        
-        ToDo: Handle Fehlverhalten wenn DB nicht erreichbar!
-        
-        :return: Datenbank erfolgreich verbunden
+        :return: True wenn die Datenbank erreichbar ist, sonst False
         :rtype: bool
         """
-        
-        print("Host: {0:s}:{1:s}  -> InfluxDB Version: {2:b}  erfolgreich "\
-            "verbunden".format(self._db_host,self._db_port,self.client.ping()))
-    
-        return True
+        try:
+            ok = bool(self.client.ping())
+        except Exception as e:
+            self.logger.error(f"InfluxDB nicht erreichbar ({self._db_host}:{self._db_port}): {e}")
+            return False
+
+        if ok:
+            self.logger.info(f"InfluxDB {self._db_host}:{self._db_port} erreichbar (ping OK)")
+        else:
+            self.logger.error(f"InfluxDB {self._db_host}:{self._db_port} antwortet nicht auf ping")
+        return ok
     
     def store_data (self, current_data_list: list[DataPoint]) -> None:
         """Abspeicherung der Messdaten in der InfluxDB Datenbank
@@ -164,9 +168,12 @@ class StoreDataToInflux:
             # self.client.write_points(json_list) 
 
         
-            write_api = self.client.write_api(write_options=SYNCHRONOUS)
-            write_api.write(bucket=self._bucket, record=json_list)
-            print('Data written to influxDB...')
-            write_api.__del__()
+            # Schreibzugriff abgesichert: ein Fehler (z.B. DB im laufenden
+            # Betrieb ausgefallen) darf die Hauptschleife nicht killen
+            try:
+                self.write_api.write(bucket=self._bucket, record=json_list)
+                self.logger.debug(f"{len(json_list)} Datenpunkte in InfluxDB geschrieben")
+            except Exception as e:
+                self.logger.error(f"Fehler beim Schreiben in die InfluxDB: {e}")
     
     
